@@ -4,4 +4,4 @@ Megumi -- Knowledge and previous experience mostly in C++, Python, Java/JavaScip
 
 Jiaqi --- knowledge in C++, Python, and Java/Javascript. Interested in software development.
 
-Justin - Knowledge of Python, TS, Go, ReactNative, MongoDB, AWS. I have a focus in full stack and backend.
+Justin - Knowledge of Python, TS, Go, ReactNative, AWS. I have a focus in full stack and backend.

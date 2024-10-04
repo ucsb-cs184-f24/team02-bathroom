@@ -1,3 +1,3 @@
 Product Owner: Chloe Chen
-Scrum Leader: Kendrick Lee
-Scribe: Justin Hao
+<br> Scrum Leader: Kendrick Lee
+<br> Scribe: Justin Hao

@@ -3,3 +3,5 @@ Thienan - I have knowledge in C++, Python, and Java/Javascript. I am interested 
 Megumi -- Knowledge and previous experience mostly in C++, Python, Java/JavaScipt. Interested in learning more about software development. 
 
 Jiaqi --- knowledge in C++, Python, and Java/Javascript. Interested in software development.
+
+Justin - Knowledge of Python, TS, Go, ReactNative, MongoDB, AWS. I have a focus in full stack and backend.

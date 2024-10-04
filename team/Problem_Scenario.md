@@ -1,0 +1,1 @@
+Everyone knows the horror stories of going to a horrible bathroom. A student, faculty memeber, or a guest of UCSB is looking to use the bathroom. With our UCSB bathroom rating app, everyone will know where to comfortably do their business on campus.

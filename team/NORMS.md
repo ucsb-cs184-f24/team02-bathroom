@@ -1,11 +1,11 @@
 # Team Member Name
-Kendrick Lee
-Luis Bravo
-Justin Hao
-Thienan Vu
-Zheli Chen
-Jiaqi Guan
-Megumi Ondo
+Kendrick Lee\
+Luis Bravo\
+Justin Hao\
+Thienan Vu\
+Zheli Chen\
+Jiaqi Guan\
+Megumi Ondo\
 
 # Ideal Team Behaviors
 - Attend and pay attention in standup meetings

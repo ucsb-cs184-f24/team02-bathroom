@@ -1,7 +1,7 @@
 # Personas:
 - Jasmine, 20, UCSB student
 - John, 31, UCSB faculty
-- 
+
 ## Scenario 1:
 Jasmine wants to go to a bathroom in between class, but had a horrible experience going to a dirty bathroom. She want to be able to find a nice bathroom in between her class that is not dirty. 
 

@@ -1,6 +1,6 @@
 # Bathroom Finder  
 
-Our app will help users find the best bathroom on campus.  
+Our app will help users find the best bathroom on the UCSB campus.  
 
 ## Members  
 Thienan Vu - thienanvuu    

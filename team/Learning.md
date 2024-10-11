@@ -20,6 +20,8 @@ https://developer.apple.com/tutorials/swiftui/
 
 https://www.hackingwithswift.com/quick-start/swiftui
 
+https://developer.apple.com/documentation/swiftui
+
 # Benefits
 
 - Apple developed APIs

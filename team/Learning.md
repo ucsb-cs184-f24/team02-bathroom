@@ -20,4 +20,20 @@ https://developer.apple.com/tutorials/swiftui/
 
 https://www.hackingwithswift.com/quick-start/swiftui
 
+# Benefits
+
+- Apple developed APIs
+- Xcode allows us to see our development UI in a preview
+- Native IOS which will integrate easier
+
+# Challenges
+
+- Apple development fee
+- All novices with Swift
+- Not cross-platform
+- Less resources since SwiftUI is relatively newer
+- XCode is more complicated than a normal IDE
+
+
+
 

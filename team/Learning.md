@@ -11,3 +11,13 @@ Kendrick - Knowledge in Python, C++, ReactNative, Java/JavaScript. I am interest
 Zheli - Knowledge in Python, C++, Java/JavaScript. Interested in software development. 
 
 Luis - Fullstack web dev (PERN), and iOS app dev (swiftUI)
+
+#Documents
+
+https://codewithchris.com/xcode-tutorial/
+
+https://developer.apple.com/tutorials/swiftui/
+
+https://www.hackingwithswift.com/quick-start/swiftui
+
+

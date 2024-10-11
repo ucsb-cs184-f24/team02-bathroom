@@ -12,7 +12,7 @@ Zheli - Knowledge in Python, C++, Java/JavaScript. Interested in software develo
 
 Luis - Fullstack web dev (PERN), and iOS app dev (swiftUI)
 
-#Documents
+# Documents
 
 https://codewithchris.com/xcode-tutorial/
 

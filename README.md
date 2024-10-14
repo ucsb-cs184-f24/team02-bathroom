@@ -18,7 +18,7 @@ Zheli Chen - chendashi
 - APIs: Google Maps API (for location services)
 
 ## User Roles and Permissions
-There are two types of users:\
+There are two types of users:
 
 ### Users:
 - Can search for bathrooms based on their location or by browsing campus facilities.

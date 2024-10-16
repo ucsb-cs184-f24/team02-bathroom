@@ -22,13 +22,13 @@ https://www.hackingwithswift.com/quick-start/swiftui
 
 https://developer.apple.com/documentation/swiftui
 
-# Benefits
+# Benefits of Swift
 
 - Apple developed APIs
 - Xcode allows us to see our development UI in a preview
 - Native IOS which will integrate easier
 
-# Challenges
+# Challenges of Swift
 
 - Apple development fee
 - All novices with Swift

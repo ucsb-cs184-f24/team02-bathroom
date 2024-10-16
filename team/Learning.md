@@ -25,14 +25,16 @@ https://developer.apple.com/documentation/swiftui
 # Benefits of Swift
 
 - Apple developed APIs
-- Xcode allows us to see our development UI in a preview
+- Xcode's preview feature allows developers to see changes in real-time, speeding up the development process.
 - Native IOS which will integrate easier
+- SwiftUI is cross-platform across Apple devices (iOS, macOS, watchOS, tvOS), allowing for a single codebase with adjustments for different platforms.
 
 # Challenges of Swift
 
 - Apple development fee
 - All novices with Swift
 - Not cross-platform
+- SwiftUI is only supported in iOS 13 and later, limiting its use in apps that need to support older iOS versions.
 - Less resources since SwiftUI is relatively newer
 - XCode is more complicated than a normal IDE
 

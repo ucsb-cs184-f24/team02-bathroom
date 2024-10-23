@@ -23,7 +23,7 @@ struct LandingPageView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 30) {
+            VStack(spacing: 10) {
                 
                 Image("ucsb-logo")
                     .resizable()
@@ -109,7 +109,6 @@ struct LandingPageView: View {
                 
                 Spacer()
             }
-            .padding(.bottom, 50)
         }
     }
 }

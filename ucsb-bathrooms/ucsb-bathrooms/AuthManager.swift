@@ -17,7 +17,7 @@ class AuthManager {
     
     // MARK: - Google Sign-In
     func signInWithGoogle(completion: @escaping (String, String, Bool) -> Void) {
-        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+        // guard let clientID = FirebaseApp.app()?.options.clientID else { return }
 
         // let config = GIDConfiguration(clientID: clientID)
 

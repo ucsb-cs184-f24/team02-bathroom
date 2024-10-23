@@ -24,7 +24,7 @@ struct LandingPageView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 30) {
-
+                
                 Image("ucsb-logo")
                     .resizable()
                     .scaledToFit()
@@ -33,21 +33,22 @@ struct LandingPageView: View {
                     .opacity(0.9)
                     .transition(.opacity)
                     .padding(.top, 80)
-
+                
                 Text("Restrooms")
                     .font(.system(size: 48, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .shadow(radius: 5)
                     .transition(.slide)
-
+                
                 Text("Find the best restrooms on campus easily.")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color.white.opacity(0.7))
                     .padding(.horizontal, 32)
                     .multilineTextAlignment(.center)
-
+                
                 Spacer()
-
+                
+                // Google Sign-In Button
                 Button(action: {
                     AuthManager.shared.signInWithGoogle { fullName, email, success in
                         if success {
@@ -58,18 +59,25 @@ struct LandingPageView: View {
                     }
                 }) {
                     HStack {
-                        Image(systemName: "g.circle.fill")
+                        Image("google-logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
                         Text("Sign in with Google")
                             .font(.system(size: 18, weight: .medium))
+                            .padding(.leading, 10) 
                     }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.white)
+                    .cornerRadius(24)
                 }
+                .frame(height: 50)
                 .padding(.horizontal, 40)
                 .shadow(radius: 5)
-
+                
+                // Apple Sign-In Button
                 SignInWithAppleButton(
                     .signIn,
                     onRequest: { request in
@@ -91,14 +99,14 @@ struct LandingPageView: View {
                     }
                 )
                 .frame(height: 50)
-                .cornerRadius(10)
+                .cornerRadius(24)
                 .padding(.horizontal, 40)
                 .shadow(radius: 5)
-
+                
                 Text("Sign in to access restroom locations.")
                     .font(.subheadline)
                     .foregroundColor(Color.white.opacity(0.7))
-
+                
                 Spacer()
             }
             .padding(.bottom, 50)

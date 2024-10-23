@@ -6,41 +6,65 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		422FA1CE2CC8CFFF00D8087D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 422FA1CD2CC8CFFF00D8087D /* FirebaseAuth */; };
+		422FA1D12CC8D02900D8087D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 422FA1D02CC8D02900D8087D /* GoogleSignIn */; };
+		422FA1D32CC8D02900D8087D /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 422FA1D22CC8D02900D8087D /* GoogleSignInSwift */; };
+		422FA1E32CC8D64F00D8087D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 422FA1E22CC8D64F00D8087D /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ucsb-bathrooms.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		422FA1B92CC8CEF200D8087D /* loginhw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = loginhw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		422FA1D72CC8D0B200D8087D /* Exceptions for "loginhw" folder in "loginhw" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 422FA1B82CC8CEF200D8087D /* loginhw */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		34E712522CB72F6A00C3D9B6 /* ucsb-bathrooms */ = {
+		422FA1BB2CC8CEF200D8087D /* loginhw */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "ucsb-bathrooms";
+			exceptions = (
+				422FA1D72CC8D0B200D8087D /* Exceptions for "loginhw" folder in "loginhw" target */,
+			);
+			path = loginhw;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		34E7124D2CB72F6A00C3D9B6 /* Frameworks */ = {
+		422FA1B62CC8CEF200D8087D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				422FA1D32CC8D02900D8087D /* GoogleSignInSwift in Frameworks */,
+				422FA1E32CC8D64F00D8087D /* FirebaseFirestore in Frameworks */,
+				422FA1CE2CC8CFFF00D8087D /* FirebaseAuth in Frameworks */,
+				422FA1D12CC8D02900D8087D /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		34E712472CB72F6A00C3D9B6 = {
+		422FA1B02CC8CEF200D8087D = {
 			isa = PBXGroup;
 			children = (
-				34E712522CB72F6A00C3D9B6 /* ucsb-bathrooms */,
-				34E712512CB72F6A00C3D9B6 /* Products */,
+				422FA1BB2CC8CEF200D8087D /* loginhw */,
+				422FA1BA2CC8CEF200D8087D /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		34E712512CB72F6A00C3D9B6 /* Products */ = {
+		422FA1BA2CC8CEF200D8087D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */,
+				422FA1B92CC8CEF200D8087D /* loginhw.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,64 +72,72 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		34E7124F2CB72F6A00C3D9B6 /* ucsb-bathrooms */ = {
+		422FA1B82CC8CEF200D8087D /* loginhw */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 34E712602CB72F6D00C3D9B6 /* Build configuration list for PBXNativeTarget "ucsb-bathrooms" */;
+			buildConfigurationList = 422FA1C72CC8CEF400D8087D /* Build configuration list for PBXNativeTarget "loginhw" */;
 			buildPhases = (
-				34E7124C2CB72F6A00C3D9B6 /* Sources */,
-				34E7124D2CB72F6A00C3D9B6 /* Frameworks */,
-				34E7124E2CB72F6A00C3D9B6 /* Resources */,
+				422FA1B52CC8CEF200D8087D /* Sources */,
+				422FA1B62CC8CEF200D8087D /* Frameworks */,
+				422FA1B72CC8CEF200D8087D /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				34E712522CB72F6A00C3D9B6 /* ucsb-bathrooms */,
+				422FA1BB2CC8CEF200D8087D /* loginhw */,
 			);
-			name = "ucsb-bathrooms";
+			name = loginhw;
 			packageProductDependencies = (
+				422FA1CD2CC8CFFF00D8087D /* FirebaseAuth */,
+				422FA1D02CC8D02900D8087D /* GoogleSignIn */,
+				422FA1D22CC8D02900D8087D /* GoogleSignInSwift */,
+				422FA1E22CC8D64F00D8087D /* FirebaseFirestore */,
 			);
-			productName = "ucsb-bathrooms";
-			productReference = 34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */;
+			productName = loginhw;
+			productReference = 422FA1B92CC8CEF200D8087D /* loginhw.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		34E712482CB72F6A00C3D9B6 /* Project object */ = {
+		422FA1B12CC8CEF200D8087D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					34E7124F2CB72F6A00C3D9B6 = {
+					422FA1B82CC8CEF200D8087D = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
 			};
-			buildConfigurationList = 34E7124B2CB72F6A00C3D9B6 /* Build configuration list for PBXProject "ucsb-bathrooms" */;
+			buildConfigurationList = 422FA1B42CC8CEF200D8087D /* Build configuration list for PBXProject "loginhw" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 34E712472CB72F6A00C3D9B6;
+			mainGroup = 422FA1B02CC8CEF200D8087D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				422FA1CC2CC8CFFF00D8087D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				422FA1CF2CC8D02900D8087D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 34E712512CB72F6A00C3D9B6 /* Products */;
+			productRefGroup = 422FA1BA2CC8CEF200D8087D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				34E7124F2CB72F6A00C3D9B6 /* ucsb-bathrooms */,
+				422FA1B82CC8CEF200D8087D /* loginhw */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		34E7124E2CB72F6A00C3D9B6 /* Resources */ = {
+		422FA1B72CC8CEF200D8087D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -115,7 +147,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		34E7124C2CB72F6A00C3D9B6 /* Sources */ = {
+		422FA1B52CC8CEF200D8087D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -125,7 +157,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		34E7125E2CB72F6D00C3D9B6 /* Debug */ = {
+		422FA1C52CC8CEF400D8087D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -188,7 +220,7 @@
 			};
 			name = Debug;
 		};
-		34E7125F2CB72F6D00C3D9B6 /* Release */ = {
+		422FA1C62CC8CEF400D8087D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -244,29 +276,29 @@
 			};
 			name = Release;
 		};
-		34E712612CB72F6D00C3D9B6 /* Debug */ = {
+		422FA1C82CC8CEF400D8087D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "ucsb-bathrooms/ucsb-bathrooms.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_ASSET_PATHS = "\"loginhw/Preview Content\"";
+				DEVELOPMENT_TEAM = R2PN4H6LL7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "your location is used to find bathrooms near you";
+				INFOPLIST_FILE = loginhw/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cs184-group-2.ucsb-bathrooms";
+				PRODUCT_BUNDLE_IDENTIFIER = cs184.loginhw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -274,29 +306,29 @@
 			};
 			name = Debug;
 		};
-		34E712622CB72F6D00C3D9B6 /* Release */ = {
+		422FA1C92CC8CEF400D8087D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "ucsb-bathrooms/ucsb-bathrooms.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_ASSET_PATHS = "\"loginhw/Preview Content\"";
+				DEVELOPMENT_TEAM = R2PN4H6LL7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "your location is used to find bathrooms near you";
+				INFOPLIST_FILE = loginhw/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.cs184-group-2.ucsb-bathrooms";
+				PRODUCT_BUNDLE_IDENTIFIER = cs184.loginhw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -307,25 +339,67 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		34E7124B2CB72F6A00C3D9B6 /* Build configuration list for PBXProject "ucsb-bathrooms" */ = {
+		422FA1B42CC8CEF200D8087D /* Build configuration list for PBXProject "loginhw" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				34E7125E2CB72F6D00C3D9B6 /* Debug */,
-				34E7125F2CB72F6D00C3D9B6 /* Release */,
+				422FA1C52CC8CEF400D8087D /* Debug */,
+				422FA1C62CC8CEF400D8087D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		34E712602CB72F6D00C3D9B6 /* Build configuration list for PBXNativeTarget "ucsb-bathrooms" */ = {
+		422FA1C72CC8CEF400D8087D /* Build configuration list for PBXNativeTarget "loginhw" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				34E712612CB72F6D00C3D9B6 /* Debug */,
-				34E712622CB72F6D00C3D9B6 /* Release */,
+				422FA1C82CC8CEF400D8087D /* Debug */,
+				422FA1C92CC8CEF400D8087D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		422FA1CC2CC8CFFF00D8087D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.4.0;
+			};
+		};
+		422FA1CF2CC8D02900D8087D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		422FA1CD2CC8CFFF00D8087D /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 422FA1CC2CC8CFFF00D8087D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		422FA1D02CC8D02900D8087D /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 422FA1CF2CC8D02900D8087D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		422FA1D22CC8D02900D8087D /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 422FA1CF2CC8D02900D8087D /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+		422FA1E22CC8D64F00D8087D /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 422FA1CC2CC8CFFF00D8087D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 34E712482CB72F6A00C3D9B6 /* Project object */;
+	rootObject = 422FA1B12CC8CEF200D8087D /* Project object */;
 }

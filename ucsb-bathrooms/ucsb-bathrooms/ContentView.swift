@@ -1,3 +1,10 @@
+//
+//  ContentView.swift
+//  ucsb-bathrooms
+//
+//  Created by Luis Bravo on 10/9/24.
+//
+
 import SwiftUI
 
 struct ContentView: View {
@@ -55,11 +62,6 @@ struct ContentView: View {
                 // If not authenticated, LandingPage
                 LandingPageView(isAuthenticated: $isAuthenticated, userFullName: $userFullName, userEmail: $userEmail)
                 
-                Button("Bypass OAuth (dev only)") {
-                    bypassAuthenticationForDev()
-                }
-                .padding()
-                .foregroundColor(.blue)
             }
         }
         .onAppear {
@@ -76,16 +78,6 @@ struct ContentView: View {
         } else {
             isAuthenticated = false
         }
-    }
-    
-    func bypassAuthenticationForDev() {
-        userFullName = "Test User"
-        userEmail = "test@example.com"
-        
-        isAuthenticated = true
-        
-        UserDefaults.standard.set(userFullName, forKey: "userFullName")
-        UserDefaults.standard.set(userEmail, forKey: "userEmail")
     }
     
     func logout() {

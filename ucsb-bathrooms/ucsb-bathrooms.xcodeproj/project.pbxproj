@@ -6,13 +6,32 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F22CC918AC00DB82F8 /* FirebaseAuth */; };
+		344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F42CC918AC00DB82F8 /* FirebaseCore */; };
+		344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F92CC91A9500DB82F8 /* GoogleSignIn */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ucsb-bathrooms.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		344366FF2CC9232B00DB82F8 /* Exceptions for "ucsb-bathrooms" folder in "ucsb-bathrooms" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 34E7124F2CB72F6A00C3D9B6 /* ucsb-bathrooms */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		34E712522CB72F6A00C3D9B6 /* ucsb-bathrooms */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				344366FF2CC9232B00DB82F8 /* Exceptions for "ucsb-bathrooms" folder in "ucsb-bathrooms" target */,
+			);
 			path = "ucsb-bathrooms";
 			sourceTree = "<group>";
 		};
@@ -23,6 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */,
+				344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */,
+				344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +87,9 @@
 			);
 			name = "ucsb-bathrooms";
 			packageProductDependencies = (
+				344366F22CC918AC00DB82F8 /* FirebaseAuth */,
+				344366F42CC918AC00DB82F8 /* FirebaseCore */,
+				344366F92CC91A9500DB82F8 /* GoogleSignIn */,
 			);
 			productName = "ucsb-bathrooms";
 			productReference = 34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */;
@@ -94,6 +119,10 @@
 			);
 			mainGroup = 34E712472CB72F6A00C3D9B6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				344366F82CC91A9500DB82F8 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 34E712512CB72F6A00C3D9B6 /* Products */;
 			projectDirPath = "";
@@ -256,6 +285,7 @@
 				DEVELOPMENT_TEAM = L33J4YU2V8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "your location is used to find bathrooms near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -286,6 +316,7 @@
 				DEVELOPMENT_TEAM = L33J4YU2V8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "your location is used to find bathrooms near you";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -326,6 +357,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.4.0;
+			};
+		};
+		344366F82CC91A9500DB82F8 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		344366F22CC918AC00DB82F8 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		344366F42CC918AC00DB82F8 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		344366F92CC91A9500DB82F8 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 344366F82CC91A9500DB82F8 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 34E712482CB72F6A00C3D9B6 /* Project object */;
 }

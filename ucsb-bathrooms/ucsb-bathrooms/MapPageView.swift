@@ -1,3 +1,10 @@
+//
+//  MapPageView.swift
+//  ucsb-bathrooms
+//
+//  Created by Luis Bravo on 10/22/24.
+//
+
 import SwiftUI
 import MapKit
 

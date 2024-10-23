@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1004265046915-kucih8u660ja7k9bcc27a40c5qt2q2f5.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1004265046915-kucih8u660ja7k9bcc27a40c5qt2q2f5</string>
+	<key>API_KEY</key>
+	<string>AIzaSyC5ScRW06K8g6Y6cVoA-URJjZ4kTYfgHqg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1004265046915</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.cs184-group-2.ucsb-bathrooms</string>
+	<key>PROJECT_ID</key>
+	<string>ucsb-restrooms-cs184-group-2</string>
+	<key>STORAGE_BUCKET</key>
+	<string>ucsb-restrooms-cs184-group-2.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1004265046915:ios:7ce53df8967c8a9743acb6</string>
+</dict>
+</plist>

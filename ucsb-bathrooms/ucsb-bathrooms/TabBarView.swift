@@ -45,5 +45,4 @@ struct TabBarView: View {
 
 #Preview {
     TabBarView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

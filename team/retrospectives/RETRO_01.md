@@ -3,17 +3,17 @@
 * Led by: Megumi
 * Present: Megumi Luis Justin Thienan Zheli Jiaqi Kendrick 
 
-Start
+Start\
 -Making sure everyone is on the same page during class time<br />
 -Start working on backend<br />
 -PR get checked by another person<br />
 
-Stop
+Stop\
 -Wasting time organizing github<br />
 -Worrying about other peoples code to work on your computer<br />
 -Trying to flush everything out<br />
 
-Continue
+Continue\
 -Continue communicating through Slack and iMesssages<br />
 -Continue working on frontend<br />
 -Continue brainstorming new potential features/improvements to current functionality<br />

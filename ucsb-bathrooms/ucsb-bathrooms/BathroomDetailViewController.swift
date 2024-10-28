@@ -1,9 +1,3 @@
-//
-//  BathroomDetailViewController.swift
-//  ucsb-bathrooms
-//
-//  Created by Julissa Guan on 10/19/24.
-//
 import SwiftUI
 
 struct BathroomDetailView: View {
@@ -12,6 +6,8 @@ struct BathroomDetailView: View {
     @State private var reviews: [Review] = []
     
     let bathroomID: String
+    let location: String // New property for Bathroom Location
+    let gender: String // New property for Bathroom Gender
 
     var body: some View {
         ScrollView {
@@ -21,7 +17,7 @@ struct BathroomDetailView: View {
                     .font(.largeTitle)
                     .padding(.bottom, 10)
                 
-                //iamge
+                // Image placeholder for bathroom photo
                 Image("bathroom_placeholder")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -30,6 +26,25 @@ struct BathroomDetailView: View {
                     .cornerRadius(10)
                     .padding(.bottom, 20)
                 
+                // Bathroom Location and Gender details
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Location:")
+                            .font(.headline)
+                        Text(location)
+                            .font(.body)
+                    }
+                    
+                    HStack {
+                        Text("Gender:")
+                            .font(.headline)
+                        Text(gender)
+                            .font(.body)
+                    }
+                }
+                .padding(.bottom, 20)
+                
+                // Rating section
                 Text("Rate this Bathroom")
                     .font(.headline)
                 HStack {
@@ -45,12 +60,14 @@ struct BathroomDetailView: View {
                 }
                 .padding(.bottom, 20)
                 
+                // Comment section
                 Text("Comment:")
                     .font(.headline)
                 TextField("Leave your thoughts here...", text: $reviewText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom, 20)
                 
+                // Submit Review button
                 Button(action: submitReview) {
                     Text("Submit Review")
                         .frame(minWidth: 0, maxWidth: .infinity)
@@ -61,7 +78,7 @@ struct BathroomDetailView: View {
                 }
                 .padding(.bottom, 20)
                 
-                //all other reviews
+                // Display all other reviews
                 if !reviews.isEmpty {
                     Text("Reviews:")
                         .font(.headline)
@@ -88,7 +105,7 @@ struct BathroomDetailView: View {
         }
     }
     
-    //save the new review locally - make it sync with backend later
+    // Function to submit the new review locally
     func submitReview() {
         let newReview = Review(text: reviewText, rating: rating)
         reviews.append(newReview)
@@ -117,7 +134,6 @@ struct Review: Identifiable {
 
 struct BathroomDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        BathroomDetailView(bathroomID: "ILP 1st Floor")
+        BathroomDetailView(bathroomID: "ILP 1st Floor", location: "Building ILP, 1st Floor", gender: "Unisex")
     }
 }
-

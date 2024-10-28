@@ -10,17 +10,17 @@ struct BathroomDetailView: View {
     @State private var reviewText: String = ""
     @State private var rating: Int = 3
     @State private var reviews: [Review] = []
-    
+
     let bathroomID: String
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                
+
                 Text("Bathroom: \(bathroomID)")
                     .font(.largeTitle)
                     .padding(.bottom, 10)
-                
+
                 //iamge
                 Image("bathroom_placeholder")
                     .resizable()
@@ -29,7 +29,7 @@ struct BathroomDetailView: View {
                     .clipped()
                     .cornerRadius(10)
                     .padding(.bottom, 20)
-                
+
                 Text("Rate this Bathroom")
                     .font(.headline)
                 HStack {
@@ -44,13 +44,13 @@ struct BathroomDetailView: View {
                     }
                 }
                 .padding(.bottom, 20)
-                
+
                 Text("Comment:")
                     .font(.headline)
                 TextField("Leave your thoughts here...", text: $reviewText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom, 20)
-                
+
                 Button(action: submitReview) {
                     Text("Submit Review")
                         .frame(minWidth: 0, maxWidth: .infinity)
@@ -60,7 +60,7 @@ struct BathroomDetailView: View {
                         .cornerRadius(10)
                 }
                 .padding(.bottom, 20)
-                
+
                 //all other reviews
                 if !reviews.isEmpty {
                     Text("Reviews:")
@@ -87,7 +87,7 @@ struct BathroomDetailView: View {
             loadReviews()
         }
     }
-    
+
     //save the new review locally - make it sync with backend later
     func submitReview() {
         let newReview = Review(text: reviewText, rating: rating)
@@ -102,7 +102,7 @@ struct BathroomDetailView: View {
             reviews = savedReviews.map { Review(text: $0["text"] as! String, rating: $0["rating"] as! Int) }
         }
     }
-    
+
     func saveReviews() {
         let reviewData = reviews.map { ["text": $0.text, "rating": $0.rating] }
         UserDefaults.standard.set(reviewData, forKey: "reviews_\(bathroomID)")

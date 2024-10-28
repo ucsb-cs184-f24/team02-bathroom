@@ -8,18 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
-    
+
     @State var isAuthenticated = false
     @State var userFullName: String = ""
     @State var userEmail: String = ""
     @State private var selectedTab = 0
-    
+
     var body: some View {
         VStack {
             if isAuthenticated {
                 // Show the TabBar when the user is authenticated
                 TabView(selection: $selectedTab) {
-                    
+
                     MapPageView()
                     .tabItem {
                         if self.selectedTab == 0 {
@@ -30,7 +30,7 @@ struct ContentView: View {
                         Text("Map")
                     }
                     .tag(0)
-                    
+
                     VStack {
                         Text("Placeholder View")
                             .font(.largeTitle)
@@ -45,7 +45,7 @@ struct ContentView: View {
                         Text("Placeholder")
                     }
                     .tag(1)
-                    
+
                     // My Account Tab - ProfilePage with Sign Out button
                     ProfilePageView(userFullName: $userFullName, userEmail: $userEmail, isAuthenticated: $isAuthenticated)
                         .tabItem {
@@ -61,14 +61,14 @@ struct ContentView: View {
             } else {
                 // If not authenticated, LandingPage
                 LandingPageView(isAuthenticated: $isAuthenticated, userFullName: $userFullName, userEmail: $userEmail)
-                
+
             }
         }
         .onAppear {
             loadUserData()
         }
     }
-    
+
     func loadUserData() {
         if let savedFullName = UserDefaults.standard.string(forKey: "userFullName"),
            let savedEmail = UserDefaults.standard.string(forKey: "userEmail") {
@@ -79,7 +79,7 @@ struct ContentView: View {
             isAuthenticated = false
         }
     }
-    
+
     func logout() {
         userFullName = ""
         userEmail = ""

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F5DF2E82CCF8A10007A929F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 1F5DF2E72CCF8A10007A929F /* FirebaseFirestore */; };
 		344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F22CC918AC00DB82F8 /* FirebaseAuth */; };
 		344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F42CC918AC00DB82F8 /* FirebaseCore */; };
 		344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F92CC91A9500DB82F8 /* GoogleSignIn */; };
@@ -43,6 +44,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */,
+				1F5DF2E82CCF8A10007A929F /* FirebaseFirestore in Frameworks */,
 				344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */,
 				344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */,
 			);
@@ -90,6 +92,7 @@
 				344366F22CC918AC00DB82F8 /* FirebaseAuth */,
 				344366F42CC918AC00DB82F8 /* FirebaseCore */,
 				344366F92CC91A9500DB82F8 /* GoogleSignIn */,
+				1F5DF2E72CCF8A10007A929F /* FirebaseFirestore */,
 			);
 			productName = "ucsb-bathrooms";
 			productReference = 34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */;
@@ -282,7 +285,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = Q7FJG2V238;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
@@ -313,7 +316,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = Q7FJG2V238;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
@@ -378,6 +381,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1F5DF2E72CCF8A10007A929F /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		344366F22CC918AC00DB82F8 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

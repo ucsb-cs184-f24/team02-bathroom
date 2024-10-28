@@ -17,7 +17,7 @@ struct TabBarView: View {
                     Text("Map")
                 }
                 .tag(0)
-            
+
             ContentView()
                 .tabItem {
                     if self.selectedTab == 1 {

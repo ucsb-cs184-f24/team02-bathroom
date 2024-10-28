@@ -24,7 +24,7 @@ struct LandingPageView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 10) {
-                
+
                 Image("ucsb-logo")
                     .resizable()
                     .scaledToFit()
@@ -33,21 +33,21 @@ struct LandingPageView: View {
                     .opacity(0.9)
                     .transition(.opacity)
                     .padding(.top, 80)
-                
+
                 Text("Restrooms")
                     .font(.system(size: 48, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .shadow(radius: 5)
                     .transition(.slide)
-                
+
                 Text("Find the best restrooms on campus easily.")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color.white.opacity(0.7))
                     .padding(.horizontal, 32)
                     .multilineTextAlignment(.center)
-                
+
                 Spacer()
-                
+
                 // Google Sign-In Button
                 Button(action: {
                     AuthManager.shared.signInWithGoogle { fullName, email, success in
@@ -65,7 +65,7 @@ struct LandingPageView: View {
                             .frame(width: 20, height: 20)
                         Text("Sign in with Google")
                             .font(.system(size: 18, weight: .medium))
-                            .padding(.leading, 10) 
+                            .padding(.leading, 10)
                     }
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
@@ -76,7 +76,7 @@ struct LandingPageView: View {
                 .frame(height: 50)
                 .padding(.horizontal, 40)
                 .shadow(radius: 5)
-                
+
                 // Apple Sign-In Button
                 SignInWithAppleButton(
                     .signIn,
@@ -102,11 +102,11 @@ struct LandingPageView: View {
                 .cornerRadius(24)
                 .padding(.horizontal, 40)
                 .shadow(radius: 5)
-                
+
                 Text("Sign in to access restroom locations.")
                     .font(.subheadline)
                     .foregroundColor(Color.white.opacity(0.7))
-                
+
                 Spacer()
             }
         }

@@ -16,10 +16,14 @@ struct ProfilePageView: View {
         VStack(spacing: 20) {
             Text("Profile")
                 .font(.system(size: 32, weight: .bold))
-                .padding(.top, 50)
+                .padding(.top, 30)
             
-            Spacer()
-            
+            Image("profile-pic")
+                .resizable()
+                .frame(width: 175, height: 175)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.black, lineWidth: 1))
+        
             Text("Name: \(userFullName)")
                 .font(.system(size: 24, weight: .medium))
                 .padding(.horizontal, 16)
@@ -27,6 +31,35 @@ struct ProfilePageView: View {
             Text("Email: \(userEmail)")
                 .font(.system(size: 20))
                 .padding(.horizontal, 16)
+            
+            //Favourties
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(.gray)
+                .padding(.horizontal)
+            
+            Text("Favorites")
+                .font(.system(size: 26, weight: .bold))
+            
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(.gray)
+                .padding(.horizontal)
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 4) { // Adjust spacing as needed
+                    HStack(alignment: .top) {
+                        Text("•") // Dot symbol
+                            .font(.system(size: 20))
+                            .padding(.trailing, 4) // Space between dot and text
+                        Text("Placeholder Bathroom")
+                            .font(.system(size: 20))
+                            .padding(.horizontal, 16)
+                    }
+                    // Add more list items here by duplicating the HStack
+                }
+                .padding()
+            }
             
             Spacer()
             

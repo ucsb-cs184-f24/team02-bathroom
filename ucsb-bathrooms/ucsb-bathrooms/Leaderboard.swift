@@ -24,6 +24,24 @@ let sampleBathrooms = [
     Bathroom(name: "HSSB First Floor", averageRating: 3.8, reviewCount: 50)
 ]
 
+// Model representing each bathroom review
+struct BathroomReview: Identifiable {
+    let id = UUID()
+    let bathroomName: String
+    let reviewerName: String
+    let timestamp: Date
+    let text: String
+}
+
+// Sample data of recent reviews
+let sampleReviews = [
+    BathroomReview(bathroomName: "ILP Second Floor", reviewerName: "Alice", timestamp: Date().addingTimeInterval(-3600), text: "Clean and spacious!"),
+    BathroomReview(bathroomName: "Elings Hall", reviewerName: "Bob", timestamp: Date().addingTimeInterval(-7200), text: "Pretty good, but could use more soap."),
+    BathroomReview(bathroomName: "Harold Frank Hall First Floor", reviewerName: "Charlie", timestamp: Date().addingTimeInterval(-10800), text: "Well-maintained and fresh-smelling."),
+    BathroomReview(bathroomName: "SRB Second Floor", reviewerName: "David", timestamp: Date().addingTimeInterval(-14400), text: "A bit crowded during peak hours."),
+    BathroomReview(bathroomName: "HSSB First Floor", reviewerName: "Eve", timestamp: Date().addingTimeInterval(-18000), text: "Decent, but sometimes out of paper towels.")
+]
+
 // View to display stars based on rating
 struct StarRatingView: View {
     let rating: Double
@@ -51,31 +69,66 @@ struct BathroomLeaderboardView: View {
             }
         }
     
+    let recentReviews = sampleReviews.sorted { $0.timestamp > $1.timestamp }
+    
     var body: some View {
-        NavigationView {
-            List(bathrooms) { bathroom in
+        VStack {
+            // Top Rated Bathrooms Section
+            Text("Top Rated Bathrooms")
+                .font(.title2)
+                .padding(.top, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    VStack(alignment: .leading) {
-                        Text(bathroom.name)
-                            .font(.headline)
-                        
-                        // Star rating view
-                        StarRatingView(rating: bathroom.averageRating)
-                            .padding(.top, 2)
-                        
-                        Text("\(String(format: "%.1f", bathroom.averageRating))")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    ForEach(bathrooms.prefix(3)) { bathroom in
+                        VStack {
+                            Text(bathroom.name)
+                                .font(.headline)
+                            
+                            StarRatingView(rating: bathroom.averageRating)
+                                .padding(.top, 2)
+                            
+                            Text("\(String(format: "%.1f", bathroom.averageRating))")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
                     }
-                    Spacer()
-                    Text("\(bathroom.reviewCount) reviews")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                 }
-                .padding(.vertical, 8)
             }
-            .navigationTitle("Top Bathroom Ratings")
+            
+            // Top Rated Bathrooms Section
+            Text("Recent Reviews")
+                .font(.title2)
+                .padding(.top, 20)
+            
+            
+            ScrollView {
+                VStack(alignment: .leading) {
+                    ForEach(recentReviews) { review in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(review.reviewerName) on \(review.bathroomName)")
+                                .font(.headline)
+                            
+                            Text(review.text)
+                                .font(.subheadline)
+                            
+                            Text(review.timestamp, style: .relative)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
+                }
+            }
         }
+        .padding()
     }
 }
 
@@ -92,3 +145,4 @@ struct BathroomLeaderboardContentView_Previews: PreviewProvider {
         BathroomLeaderboardContentView()
     }
 }
+

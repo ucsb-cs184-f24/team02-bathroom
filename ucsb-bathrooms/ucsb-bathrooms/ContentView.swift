@@ -20,8 +20,8 @@ struct ContentView: View {
                 // Show the TabBar when the user is authenticated
                 TabView(selection: $selectedTab) {
                     
-                    MapPageView()
-                    .tabItem {
+                    BathroomMapView()
+                        .modelContainer(Bathrooms.preview).tabItem {
                         if self.selectedTab == 0 {
                             Image(systemName: "map")
                         } else {

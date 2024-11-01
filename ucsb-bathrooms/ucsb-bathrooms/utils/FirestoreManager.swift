@@ -22,10 +22,12 @@ class FirestoreManager: ObservableObject {
     // MARK: - Models
     struct User: Identifiable {
         var id: String
-        let username: String
-        let email: String
-        let profilePicture: String?
+        let authProvider: String
         let createdAt: Timestamp
+        let email: String
+        let fullName: String
+        let lastLoginAt: Timestamp
+        let reviews: [DocumentReference]
     }
     
     struct Bathroom: Identifiable {
@@ -140,10 +142,12 @@ class FirestoreManager: ObservableObject {
         let data = document.data() ?? [:]
         return User(
             id: document.documentID,
-            username: data["username"] as? String ?? "",
+            authProvider: data["authProvider"] as? String ?? "",
+            createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
             email: data["email"] as? String ?? "",
-            profilePicture: data["profilePicture"] as? String,
-            createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+            fullName: data["fullName"] as? String ?? "",
+            lastLoginAt: data["lastLoginAt"] as? Timestamp ?? Timestamp(),
+            reviews: data["reviews"] as? [DocumentReference] ?? []
         )
     }
 
@@ -171,10 +175,12 @@ class FirestoreManager: ObservableObject {
 
     private func mapUserToData(_ user: User) throws -> [String: Any] {
         return [
-            "username": user.username,
+            "authProvider": user.authProvider,
+            "createdAt": user.createdAt,
             "email": user.email,
-            "profilePicture": user.profilePicture as Any,
-            "createdAt": user.createdAt
+            "fullName": user.fullName,
+            "lastLoginAt": user.lastLoginAt,
+            "reviews": user.reviews
         ]
     }
 }

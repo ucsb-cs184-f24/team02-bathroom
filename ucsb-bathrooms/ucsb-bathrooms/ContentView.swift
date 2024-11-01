@@ -31,20 +31,12 @@ struct ContentView: View {
                     }
                     .tag(0)
                     
-                    VStack {
-                        Text("Placeholder View")
-                            .font(.largeTitle)
-                            .padding()
-                    }
-                    .tabItem {
-                        if self.selectedTab == 1 {
-                            Image(systemName: "star")
-                        } else {
-                            Image(systemName: "star.fill")
+                    BathroomLeaderboardView()
+                        .tabItem {
+                            Image(systemName: selectedTab == 1 ? "star.fill" : "star")
+                            Text("Leaderboard")
                         }
-                        Text("Placeholder")
-                    }
-                    .tag(1)
+                        .tag(1)
                     
                     // My Account Tab - ProfilePage with Sign Out button
                     ProfilePageView(userFullName: $userFullName, userEmail: $userEmail, isAuthenticated: $isAuthenticated)

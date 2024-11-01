@@ -10,6 +10,7 @@
 		344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F22CC918AC00DB82F8 /* FirebaseAuth */; };
 		344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F42CC918AC00DB82F8 /* FirebaseCore */; };
 		344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F92CC91A9500DB82F8 /* GoogleSignIn */; };
+		348837062CD55874002E4390 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 348837052CD55874002E4390 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */,
+				348837062CD55874002E4390 /* FirebaseFirestore in Frameworks */,
 				344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */,
 				344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */,
 			);
@@ -90,6 +92,7 @@
 				344366F22CC918AC00DB82F8 /* FirebaseAuth */,
 				344366F42CC918AC00DB82F8 /* FirebaseCore */,
 				344366F92CC91A9500DB82F8 /* GoogleSignIn */,
+				348837052CD55874002E4390 /* FirebaseFirestore */,
 			);
 			productName = "ucsb-bathrooms";
 			productReference = 34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */;
@@ -392,6 +395,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 344366F82CC91A9500DB82F8 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		348837052CD55874002E4390 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

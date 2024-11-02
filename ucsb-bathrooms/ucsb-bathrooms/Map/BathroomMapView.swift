@@ -15,29 +15,19 @@ struct BathroomMapView: View {
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     @Query private var listBathroom: [BathroomMark]
     
-    // state variables for toggle functionality
     @State private var showNearby = false
     @State private var nearbyBathrooms: [BathroomMark] = []
-    
-    // state variable for no bathroom alert
     @State private var showingNoBathroomsAlert = false
+    @State private var selectedBathroom: BathroomMark?
 
-    
     var body: some View {
-        ZStack(alignment: .topLeading) { // Changed from .topTrailing to .topLeading
-            Map(position: $cameraPosition) {
+        ZStack(alignment: .topLeading) {
+            Map(position: $cameraPosition, selection: $selectedBathroom) {
                 UserAnnotation()
                 
-                // Display filtered or all bathrooms based on `showNearby`
                 ForEach(showNearby ? nearbyBathrooms : listBathroom) { placemark in
-                    Marker(coordinate: placemark.coordinate) {
-                        /*
-                        // styled reserved for best bathrooms use only
-                        Label(placemark.name, systemImage: "star.fill")
-                        */
-                    }
-                    // color reserved for best bathroom nearby/all view mode
-                    //.tint(.yellow)
+                    Marker(placemark.name, coordinate: placemark.coordinate)
+                        .tag(placemark)
                 }
             }
             .onAppear {
@@ -52,31 +42,46 @@ struct BathroomMapView: View {
                 MapUserLocationButton()
             }
             
-            // toggle button
-            // show all/nearby bathrooms only
-            Button(action: {
-                showNearby.toggle()
-                if showNearby {
-                    filternearbyBathrooms()
+            VStack {
+                Button(action: {
+                    showNearby.toggle()
+                    if showNearby {
+                        filternearbyBathrooms()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: showNearby ? "location.fill" : "location")
+                        Text(showNearby ? "Show All Restrooms" : "Show Nearby Restrooms")
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.9))
+                    .foregroundColor(.blue)
+                    .cornerRadius(10)
+                    .shadow(radius: 5)
                 }
-            }) {
-                HStack {
-                    Image(systemName: showNearby ? "location.fill" : "location")
-                    Text(showNearby ? "Show All Restrooms" : "Show Nearby Restrooms")
+                .padding([.leading, .top], 16)
+                
+                Spacer()
+                
+                if let selected = selectedBathroom {
+                    Text(selected.name)
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(10)
+                        .padding()
                 }
-                .padding()
-                .background(Color.white.opacity(0.9))
-                .foregroundColor(.blue)
-                .cornerRadius(10)
-                .shadow(radius: 5)
             }
-            .padding([.leading, .top], 16)
         }
-        // alert if no bathrooms is nearby within 0.2 miles
         .alert("No Nearby Restrooms", isPresented: $showingNoBathroomsAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text("No nearby restrooms found within 0.2 miles. or perhaps the location permission is not granted to this app.")
+        }
+        .onChange(of: selectedBathroom) { oldValue, newValue in
+            if let newValue {
+                print("Selected bathroom: \(newValue.name)")
+                // You can add more actions here, like centering the map on the selected bathroom
+            }
         }
     }
     
@@ -117,6 +122,20 @@ struct BathroomMapView: View {
     }
 }
 
+
+struct CustomMarkerView: View {
+    var isSelected: Bool
+    
+    var body: some View {
+        Image(systemName: "toilet")
+            .foregroundColor(isSelected ? .red : .blue)
+            .background(
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 30, height: 30)
+            )
+    }
+}
 
 
 #Preview {

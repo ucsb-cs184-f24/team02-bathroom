@@ -15,6 +15,8 @@ struct BathroomDetailView: View {
     @State private var bathroom: FirestoreManager.Bathroom?
     @AppStorage("userEmail") private var userEmail: String = ""
     @AppStorage("isAuthenticated") private var isAuthenticated: Bool = false
+    @State private var usageCount: Int = 0
+    @State private var showingUsageAlert = false
 
     private func loadBathroomData() async {
         do {
@@ -32,27 +34,59 @@ struct BathroomDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Header Section
+                // Header Section with Stats
                 VStack(alignment: .leading, spacing: 12) {
                     Text(location)
                         .font(.title2)
                         .bold()
 
-                    HStack(spacing: 16) {
-                        Label(gender, systemImage: "person.fill")
-                            .foregroundColor(.blue)
+                    if let bathroom = bathroom {
+                        VStack(spacing: 12) {
+                            // Rating Stats
+                            HStack(spacing: 16) {
+                                Label(gender, systemImage: "person.fill")
+                                    .foregroundColor(.blue)
 
-                        if let bathroom = bathroom {
-                            HStack(spacing: 4) {
-                                ForEach(1...5, id: \.self) { star in
-                                    Image(systemName: star <= Int(bathroom.averageRating) ? "star.fill" : "star")
-                                        .foregroundColor(.yellow)
-                                        .font(.system(size: 14))
+                                HStack(spacing: 4) {
+                                    RatingStars(rating: bathroom.averageRating)
+                                    Text(String(format: "%.1f", bathroom.averageRating))
+                                        .foregroundColor(.gray)
+                                    Text("(\(bathroom.totalReviews))")
+                                        .foregroundColor(.gray)
                                 }
-                                Text(String(format: "%.1f", bathroom.averageRating))
-                                    .foregroundColor(.gray)
-                                Text("(\(bathroom.totalReviews))")
-                                    .foregroundColor(.gray)
+                            }
+
+                            Divider()
+
+                            // Usage Stats
+                            HStack(spacing: 20) {
+                                // Total Uses
+                                VStack {
+                                    HStack {
+                                        Image(systemName: "person.3.fill")
+                                            .foregroundColor(.blue)
+                                        Text("\(bathroom.totalUses)")
+                                            .font(.headline)
+                                    }
+                                    Text("Total Visits")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+
+                                // Your Uses
+                                if usageCount > 0 {
+                                    VStack {
+                                        HStack {
+                                            Image(systemName: "person.fill.checkmark")
+                                                .foregroundColor(.green)
+                                            Text("\(usageCount)")
+                                                .font(.headline)
+                                        }
+                                        Text("Your Visits")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
                             }
                         }
                     }
@@ -62,6 +96,25 @@ struct BathroomDetailView: View {
                 .background(Color(.systemBackground))
                 .cornerRadius(15)
                 .shadow(radius: 2)
+
+                // Log Visit Button
+                Button {
+                    Task {
+                        await logVisit()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Log Visit")
+
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.green.opacity(0.2))
+                    .foregroundColor(.green)
+                    .cornerRadius(10)
+                }
+                .disabled(!isAuthenticated)
 
                 // Review Input Section
                 VStack(alignment: .leading, spacing: 16) {
@@ -134,45 +187,22 @@ struct BathroomDetailView: View {
         } message: {
             Text(alertMessage)
         }
+        .alert("Visit Logged!", isPresented: $showingUsageAlert) {
+            Button("OK", role: .cancel) { }
+        }
         .task {
             await loadBathroomData()
             await loadReviews()
+            if isAuthenticated {
+                await loadUserUsageCount()
+            }
         }
     }
 
     private func handleSubmitReview() async {
-        print("Debug - Auth State: \(isAuthenticated)")
-        print("Debug - User Email: \(userEmail)")
-
-        // Check authentication first
-        guard isAuthenticated else {
-            alertMessage = "Please sign in to submit a review"
-            showAlert = true
-            return
-        }
-
-        // Validate email
-        guard !userEmail.isEmpty else {
-            print("Debug - Email is empty but user is authenticated")
-            // Try to get email from UserDefaults directly
-            if let email = UserDefaults.standard.string(forKey: "userEmail") {
-                userEmail = email
-            } else {
-                alertMessage = "Error: Unable to get user email. Please sign out and sign in again."
-                showAlert = true
-                return
-            }
-            return
-        }
-
         isLoading = true
 
         do {
-            print("Submitting review for bathroom: \(bathroomID)")
-            print("User email: \(userEmail)")
-            print("Rating: \(rating)")
-            print("Comment: \(reviewText)")
-
             try await FirestoreManager.shared.addReview(
                 bathroomId: bathroomID,
                 userId: userEmail,
@@ -180,17 +210,51 @@ struct BathroomDetailView: View {
                 comment: reviewText
             )
 
-            // Refresh both reviews and bathroom data
-            await loadReviews()
-            await loadBathroomData()
+            // Immediately update the reviews array with the new review
+            let newReview = FirestoreManager.Review(
+                id: UUID().uuidString,
+                bathroomId: bathroomID,
+                userId: userEmail,
+                rating: Double(rating),
+                comment: reviewText,
+                createdAt: Timestamp()
+            )
 
             await MainActor.run {
+                // Add the new review to the beginning of the array
+                reviews.insert(newReview, at: 0)
+
+                // Update bathroom stats immediately
+                if let currentBathroom = bathroom {
+                    let newTotalReviews = currentBathroom.totalReviews + 1
+                    let newAverageRating = ((currentBathroom.averageRating * Double(currentBathroom.totalReviews)) + Double(rating)) / Double(newTotalReviews)
+
+                    let updatedBathroom = FirestoreManager.Bathroom(
+                        id: currentBathroom.id,
+                        name: currentBathroom.name,
+                        buildingName: currentBathroom.buildingName,
+                        floor: currentBathroom.floor,
+                        location: currentBathroom.location,
+                        averageRating: newAverageRating,
+                        totalReviews: newTotalReviews,
+                        gender: currentBathroom.gender,
+                        createdAt: currentBathroom.createdAt,
+                        totalUses: currentBathroom.totalUses
+                    )
+                    bathroom = updatedBathroom
+                }
+
                 reviewText = ""
                 rating = 3
                 isLoading = false
                 alertMessage = "Review submitted successfully!"
                 showAlert = true
             }
+
+            // Refresh the actual data from Firestore
+            await loadBathroomData()
+            await loadReviews()
+
         } catch {
             await MainActor.run {
                 isLoading = false
@@ -208,6 +272,54 @@ struct BathroomDetailView: View {
             }
         } catch {
             print("Error loading reviews: \(error.localizedDescription)")
+        }
+    }
+
+    private func loadUserUsageCount() async {
+        do {
+            let counts = try await FirestoreManager.shared.getUserUsageCounts(userId: userEmail)
+            let thisCount = counts.first { $0.bathroomId == bathroomID }
+            await MainActor.run {
+                usageCount = thisCount?.count ?? 0
+            }
+        } catch {
+            print("Error loading usage count: \(error)")
+        }
+    }
+
+    private func logVisit() async {
+        do {
+            try await FirestoreManager.shared.incrementUsageCount(
+                bathroomId: bathroomID,
+                userId: userEmail
+            )
+
+            // Immediately update the UI
+            await MainActor.run {
+                usageCount += 1
+                if let currentBathroom = bathroom {
+                    let updatedBathroom = FirestoreManager.Bathroom(
+                        id: currentBathroom.id,
+                        name: currentBathroom.name,
+                        buildingName: currentBathroom.buildingName,
+                        floor: currentBathroom.floor,
+                        location: currentBathroom.location,
+                        averageRating: currentBathroom.averageRating,
+                        totalReviews: currentBathroom.totalReviews,
+                        gender: currentBathroom.gender,
+                        createdAt: currentBathroom.createdAt,
+                        totalUses: currentBathroom.totalUses + 1
+                    )
+                    bathroom = updatedBathroom
+                }
+                showingUsageAlert = true
+            }
+
+            // Refresh the actual data
+            await loadBathroomData()
+            await loadUserUsageCount()
+        } catch {
+            print("Error logging visit: \(error)")
         }
     }
 }
@@ -237,11 +349,7 @@ struct ReviewCardView: View {
             }
 
             HStack(spacing: 4) {
-                ForEach(1...5, id: \.self) { star in
-                    Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
-                        .foregroundColor(.yellow)
-                        .font(.system(size: 12))
-                }
+                StarRatingView(rating: review.rating)
                 Text(String(format: "%.1f", review.rating))
                     .font(.subheadline)
                     .foregroundColor(.gray)

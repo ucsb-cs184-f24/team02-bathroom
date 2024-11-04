@@ -13,61 +13,94 @@ struct ProfilePageView: View {
     @Binding var userEmail: String
     @Binding var isAuthenticated: Bool
     @State private var userReviews: [FirestoreManager.Review] = []
+    @State private var totalUses: Int = 0
+    @State private var showSignOutAlert = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Profile Header
-                VStack(spacing: 12) {
-                    Image(systemName: "person.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Profile Header
+                    VStack(spacing: 12) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
 
-                    Text(userFullName)
-                        .font(.title2)
-                        .bold()
+                        Text(userFullName)
+                            .font(.title2)
+                            .bold()
 
-                    Text(userEmail)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                .padding()
-
-                // Reviews Section
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("My Reviews")
-                        .font(.title2)
-                        .bold()
-                        .padding(.horizontal)
-
-                    if userReviews.isEmpty {
-                        Text("No reviews yet")
+                        Text(userEmail)
+                            .font(.subheadline)
                             .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else {
-                        ForEach(userReviews) { review in
-                            ReviewCard(review: review)
-                                .padding(.horizontal)
+                    }
+                    .padding()
+
+                    // Usage Statistics
+                    HStack {
+                        VStack {
+                            Text("\(totalUses)")
+                                .font(.title)
+                                .bold()
+                            Text("Total Visits")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                        .shadow(radius: 2)
+                    }
+                    .padding(.horizontal)
+
+                    // Reviews Section
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("My Reviews")
+                            .font(.title2)
+                            .bold()
+                            .padding(.horizontal)
+
+                        if userReviews.isEmpty {
+                            Text("No reviews yet")
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding()
+                        } else {
+                            ForEach(userReviews) { review in
+                                ReviewCard(review: review)
+                                    .padding(.horizontal)
+                            }
                         }
                     }
                 }
-
-                // Sign Out Button
-                Button(action: signOut) {
-                    Text("Sign Out")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
-                }
-                .padding()
             }
-        }
-        .background(Color(.systemGroupedBackground))
-        .task {
-            await loadUserReviews()
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Profile")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showSignOutAlert = true
+                    } label: {
+                        Text("Sign Out")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .alert("Sign Out", isPresented: $showSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    signOut()
+                }
+            } message: {
+                Text("Are you sure you want to sign out?")
+            }
+            .task {
+                await loadUserReviews()
+                if !userEmail.isEmpty {
+                    await loadTotalUses()
+                }
+            }
         }
     }
 
@@ -76,6 +109,17 @@ struct ProfilePageView: View {
             userReviews = try await FirestoreManager.shared.getUserReviews(forUserID: userEmail)
         } catch {
             print("Error loading user reviews: \(error)")
+        }
+    }
+
+    private func loadTotalUses() async {
+        do {
+            let total = try await FirestoreManager.shared.getTotalUserUses(userId: userEmail)
+            await MainActor.run {
+                totalUses = total
+            }
+        } catch {
+            print("Error loading total uses: \(error)")
         }
     }
 
@@ -97,7 +141,7 @@ struct ReviewCard: View {
         let date = review.createdAt.dateValue()
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        formatter.timeStyle = .short
+        formatter.timeStyle = .none
         return formatter.string(from: date)
     }
 
@@ -125,14 +169,14 @@ struct ReviewCard: View {
                 Text(String(format: "%.1f", review.rating))
                     .font(.subheadline)
                     .foregroundColor(.gray)
-                    .padding(.leading, 4)
             }
 
-            // Review Text
-            Text(review.comment)
-                .font(.body)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 4)
+            // Review Text (if not empty)
+            if !review.comment.isEmpty {
+                Text(review.comment)
+                    .font(.body)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding()
         .background(Color(.systemBackground))

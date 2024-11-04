@@ -30,7 +30,7 @@ struct ContentView: View {
                         }
                         .tag(0)
 
-                    BathroomLeaderboardView()
+                    Leaderboard()
                         .tabItem {
                             Image(systemName: selectedTab == 1 ? "star.fill" : "star")
                             Text("Leaderboard")

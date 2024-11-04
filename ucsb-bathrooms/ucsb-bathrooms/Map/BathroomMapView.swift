@@ -13,112 +13,101 @@ import CoreLocation
 struct BathroomMapView: View {
     @StateObject private var locationManager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
-    @Query private var listBathroom: [BathroomMark]
-    
-    @State private var showNearby = false
-    @State private var nearbyBathrooms: [BathroomMark] = []
-    @State private var showingNoBathroomsAlert = false
-    @State private var selectedBathroom: BathroomMark?
+    @State private var bathrooms: [FirestoreManager.Bathroom] = []
+    @State private var selectedBathroom: FirestoreManager.Bathroom?
     @State private var isNavigatingToDetail = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .topLeading) {
-                Map(position: $cameraPosition, selection: $selectedBathroom) {
+                Map(position: $cameraPosition,
+                    selection: $selectedBathroom) {
                     UserAnnotation()
-                    
-                    ForEach(showNearby ? nearbyBathrooms : listBathroom) { placemark in
-                        Marker(placemark.name, coordinate: placemark.coordinate)
-                            .tag(placemark)
-                    }
-                }
-                .onAppear {
-                    updateCameraPosition()
-                }
-                .onChange(of: locationManager.userLocation) { _, _ in
-                    if showNearby {
-                        filternearbyBathrooms()
+
+                    ForEach(bathrooms) { bathroom in
+                        Annotation(bathroom.name,
+                                 coordinate: CLLocationCoordinate2D(
+                                    latitude: bathroom.location.latitude,
+                                    longitude: bathroom.location.longitude
+                                 ),
+                                 anchor: .bottom) {
+                            Image(systemName: "toilet")
+                                .padding(8)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                        }
+                        .tag(bathroom)
                     }
                 }
                 .mapControls {
                     MapUserLocationButton()
+                    MapCompass()
                 }
-                
-                VStack {
-                    Button(action: {
-                        showNearby.toggle()
-                        if showNearby {
-                            filternearbyBathrooms()
+
+                if let selectedBathroom {
+                    VStack {
+                        NavigationLink(
+                            destination: BathroomDetailView(
+                                bathroomID: selectedBathroom.id,
+                                location: selectedBathroom.name,
+                                gender: selectedBathroom.gender
+                            ),
+                            isActive: $isNavigatingToDetail
+                        ) {
+                            EmptyView()
                         }
-                    }) {
-                        HStack {
-                            Image(systemName: showNearby ? "location.fill" : "location")
-                            Text(showNearby ? "Show All Restrooms" : "Show Nearby Restrooms")
+
+                        Button {
+                            isNavigatingToDetail = true
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(selectedBathroom.name)
+                                    .font(.headline)
+
+                                HStack {
+                                    // Rating Stars
+                                    HStack(spacing: 4) {
+                                        ForEach(1...5, id: \.self) { star in
+                                            Image(systemName: star <= Int(selectedBathroom.averageRating) ? "star.fill" : "star")
+                                                .foregroundColor(.yellow)
+                                                .font(.system(size: 12))
+                                        }
+                                    }
+
+                                    Text(String(format: "%.1f", selectedBathroom.averageRating))
+                                        .font(.subheadline)
+
+                                    Text("(\(selectedBathroom.totalReviews) reviews)")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+
+                                Text("Tap to view details")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(15)
+                            .shadow(radius: 5)
                         }
                         .padding()
-                        .background(Color.white.opacity(0.9))
-                        .foregroundColor(.blue)
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
                     }
-                    .padding([.leading, .top], 16)
-                    
-                    Spacer()
                 }
             }
-            .alert("No Nearby Restrooms", isPresented: $showingNoBathroomsAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("No nearby restrooms found within 0.2 miles. or perhaps the location permission is not granted to this app.")
-            }
-            .onChange(of: selectedBathroom) { oldValue, newValue in
-                if let newValue {
-                    print("Selected bathroom: \(newValue.name)")
-                    isNavigatingToDetail = true
-                }
-            }
-            .navigationDestination(isPresented: $isNavigatingToDetail) {
-                if let selectedBathroom {
-                    //BathroomDetailView(bathroomId: selectedBathroom.id)
-                    BathroomDetailView(bathroomID: "ILP 1st Floor", location: "Building ILP, 1st Floor", gender: "Unisex")
-                }
-            }
+        }
+        .task {
+            await loadBathrooms()
         }
     }
-    
-    func updateCameraPosition() {
-        if let userLocation = locationManager.userLocation {
-            let userRegion = MKCoordinateRegion(
-                center: userLocation.coordinate,
-                span: MKCoordinateSpan(
-                    latitudeDelta: 0.15,
-                    longitudeDelta: 0.15
-                )
-            )
-            withAnimation {
-                cameraPosition = .region(userRegion)
-            }
-        }
-    }
-    
-    // filters bathrooms within 0.2 miles from the user's current location.
-    func filternearbyBathrooms() {
-        guard let userLocation = locationManager.userLocation else {
-            nearbyBathrooms = []
-            showingNoBathroomsAlert = false
-            return
-        }
-        
-        let userCLLocation = CLLocation(latitude: userLocation.coordinate.latitude, longitude: userLocation.coordinate.longitude)
-        
-        nearbyBathrooms = listBathroom.filter { placemark in
-            let placemarkCLLocation = CLLocation(latitude: placemark.latitude, longitude: placemark.longitude)
-            return userCLLocation.distanceInMiles(to: placemarkCLLocation) <= 0.2
-        }
-        
-        if nearbyBathrooms.isEmpty {
-            // toggle the alert
-            showingNoBathroomsAlert = true
+
+    func loadBathrooms() async {
+        do {
+            bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+        } catch {
+            print("Error loading bathrooms: \(error)")
         }
     }
 }
@@ -126,7 +115,7 @@ struct BathroomMapView: View {
 
 struct CustomMarkerView: View {
     var isSelected: Bool
-    
+
     var body: some View {
         Image(systemName: "toilet")
             .foregroundColor(isSelected ? .red : .blue)

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 // Model representing each bathroom
 struct Bathroom: Identifiable {
@@ -46,7 +47,7 @@ let sampleReviews = [
 struct StarRatingView: View {
     let rating: Double
     private let maxRating = 5
-    
+
     var body: some View {
         HStack(spacing: 4) {
             ForEach(1...maxRating, id: \.self) { star in
@@ -59,76 +60,210 @@ struct StarRatingView: View {
 
 // Leaderboard View for the bathrooms
 struct BathroomLeaderboardView: View {
-    // Sort bathrooms by average rating first, then by review count for popularity
-    let bathrooms = sampleBathrooms
-        .sorted {
-            if $0.averageRating == $1.averageRating {
-                return $0.reviewCount > $1.reviewCount
-            } else {
-                return $0.averageRating > $1.averageRating
+    @State private var bathrooms: [FirestoreManager.Bathroom] = []
+    @StateObject private var locationManager = LocationManager()
+
+    var topRatedBathrooms: [FirestoreManager.Bathroom] {
+        bathrooms.sorted { $0.averageRating > $1.averageRating }
+            .prefix(5)
+            .map { $0 }
+    }
+
+    var nearbyBathrooms: [FirestoreManager.Bathroom] {
+        guard let userLocation = locationManager.userLocation else {
+            return bathrooms
+        }
+
+        return bathrooms.sorted { bathroom1, bathroom2 in
+            let location1 = CLLocation(
+                latitude: bathroom1.location.latitude,
+                longitude: bathroom1.location.longitude
+            )
+            let location2 = CLLocation(
+                latitude: bathroom2.location.latitude,
+                longitude: bathroom2.location.longitude
+            )
+            return location1.distance(from: userLocation) < location2.distance(from: userLocation)
+        }
+    }
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Top Rated Section
+                    VStack(alignment: .leading) {
+                        Text("Top Rated Bathrooms")
+                            .font(.title2)
+                            .bold()
+                            .padding(.horizontal)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 15) {
+                                ForEach(topRatedBathrooms) { bathroom in
+                                    NavigationLink(destination: BathroomDetailView(
+                                        bathroomID: bathroom.id,
+                                        location: bathroom.name,
+                                        gender: bathroom.gender
+                                    )) {
+                                        TopRatedBathroomCard(bathroom: bathroom)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+
+                    Divider()
+                        .padding(.horizontal)
+
+                    // Nearby Section
+                    VStack(alignment: .leading) {
+                        Text("Bathrooms Near You")
+                            .font(.title2)
+                            .bold()
+                            .padding(.horizontal)
+
+                        ForEach(nearbyBathrooms) { bathroom in
+                            NavigationLink(destination: BathroomDetailView(
+                                bathroomID: bathroom.id,
+                                location: bathroom.name,
+                                gender: bathroom.gender
+                            )) {
+                                NearbyBathroomRow(
+                                    bathroom: bathroom,
+                                    userLocation: locationManager.userLocation
+                                )
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                }
+                .padding(.vertical)
             }
         }
-    
-    let recentReviews = sampleReviews.sorted { $0.timestamp > $1.timestamp }
-    
+        .task {
+            await loadBathrooms()
+        }
+    }
+
+    func loadBathrooms() async {
+        do {
+            bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+        } catch {
+            print("Error loading bathrooms: \(error)")
+        }
+    }
+}
+
+// Top Rated Bathroom Card
+struct TopRatedBathroomCard: View {
+    let bathroom: FirestoreManager.Bathroom
+
     var body: some View {
-        VStack {
-            // Top Rated Bathrooms Section
-            Text("Top Rated Bathrooms")
-                .font(.title2)
-                .padding(.top, 20)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
+        VStack(alignment: .leading, spacing: 8) {
+            // Bathroom Icon
+            Image(systemName: "toilet")
+                .font(.system(size: 30))
+                .foregroundColor(.blue)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top)
+
+            // Bathroom Info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(bathroom.name)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                // Rating Stars
                 HStack {
-                    ForEach(bathrooms.prefix(3)) { bathroom in
-                        VStack {
-                            Text(bathroom.name)
-                                .font(.headline)
-                            
-                            StarRatingView(rating: bathroom.averageRating)
-                                .padding(.top, 2)
-                            
-                            Text("\(String(format: "%.1f", bathroom.averageRating))")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                    ForEach(1...5, id: \.self) { star in
+                        Image(systemName: star <= Int(bathroom.averageRating) ? "star.fill" : "star")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 12))
                     }
                 }
+
+                Text("\(bathroom.totalReviews) reviews")
+                    .font(.caption)
+                    .foregroundColor(.gray)
             }
-            
-            // Top Rated Bathrooms Section
-            Text("Recent Reviews")
-                .font(.title2)
-                .padding(.top, 20)
-            
-            
-            ScrollView {
-                VStack(alignment: .leading) {
-                    ForEach(recentReviews) { review in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("\(review.reviewerName) on \(review.bathroomName)")
-                                .font(.headline)
-                            
-                            Text(review.text)
-                                .font(.subheadline)
-                            
-                            Text(review.timestamp, style: .relative)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+        }
+        .frame(width: 160, height: 160)
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(15)
+        .shadow(radius: 2)
+    }
+}
+
+// Nearby Bathroom Row
+struct NearbyBathroomRow: View {
+    let bathroom: FirestoreManager.Bathroom
+    let userLocation: CLLocation?
+
+    private var distance: String {
+        guard let userLocation = userLocation else { return "N/A" }
+
+        let bathroomLocation = CLLocation(
+            latitude: bathroom.location.latitude,
+            longitude: bathroom.location.longitude
+        )
+
+        let distanceInMeters = userLocation.distance(from: bathroomLocation)
+        if distanceInMeters < 1000 {
+            return String(format: "%.0f m", distanceInMeters)
+        } else {
+            return String(format: "%.1f km", distanceInMeters / 1000)
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 15) {
+            // Bathroom Icon
+            Image(systemName: "toilet")
+                .font(.system(size: 24))
+                .foregroundColor(.blue)
+                .frame(width: 40, height: 40)
+                .background(Color.blue.opacity(0.1))
+                .clipShape(Circle())
+
+            // Bathroom Info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(bathroom.name)
+                    .font(.headline)
+
+                HStack {
+                    // Rating
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 12))
+                        Text(String(format: "%.1f", bathroom.averageRating))
+                            .font(.subheadline)
                     }
+
+                    Text("•")
+                        .foregroundColor(.gray)
+
+                    // Distance
+                    Text(distance)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
             }
+
+            Spacer()
+
+            // Navigation Arrow
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
         }
         .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 1)
     }
 }
 

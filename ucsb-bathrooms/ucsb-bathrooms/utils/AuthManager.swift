@@ -12,15 +12,11 @@ import AuthenticationServices
 import SwiftUI
 
 class AuthManager {
-    
+
     static let shared = AuthManager()
-    
+
     // MARK: - Google Sign-In
     func signInWithGoogle(completion: @escaping (String, String, Bool) -> Void) {
-        // guard let clientID = FirebaseApp.app()?.options.clientID else { return }
-
-        // let config = GIDConfiguration(clientID: clientID)
-
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else {
             return
@@ -41,8 +37,37 @@ class AuthManager {
 
             let userFullName = signInResult.user.profile?.name ?? "No Name"
             let userEmail = signInResult.user.profile?.email ?? "No Email"
-            
-            completion(userFullName, userEmail, true)
+
+            // Create user data for Firestore
+            let userData = FirestoreManager.User(
+                id: signInResult.user.userID ?? UUID().uuidString,
+                authProvider: "google",
+                createdAt: Timestamp(),
+                email: userEmail,
+                fullName: userFullName,
+                lastLoginAt: Timestamp(),
+                reviews: []
+            )
+
+            // Save to Firestore
+            Task {
+                do {
+                    // Check if user exists
+                    if let _ = try await FirestoreManager.shared.getUser(withID: userData.id) {
+                        // Update last login
+                        try await FirestoreManager.shared.updateUser(userID: userData.id, data: [
+                            "lastLoginAt": Timestamp()
+                        ])
+                    } else {
+                        // Create new user
+                        try await FirestoreManager.shared.addUser(userData)
+                    }
+                    completion(userFullName, userEmail, true)
+                } catch {
+                    print("Error saving user data: \(error.localizedDescription)")
+                    completion(userFullName, userEmail, true)
+                }
+            }
         }
     }
 
@@ -61,7 +86,36 @@ class AuthManager {
 
             UserDefaults.standard.set(fullName, forKey: "userFullName")
 
-            completion(fullName, email, true)
+            // Create user data for Firestore
+            let userData = FirestoreManager.User(
+                id: appleIDCredential.user,
+                authProvider: "apple",
+                createdAt: Timestamp(),
+                email: email,
+                fullName: fullName,
+                lastLoginAt: Timestamp(),
+                reviews: []
+            )
+
+            // Save to Firestore
+            Task {
+                do {
+                    // Check if user exists
+                    if let _ = try await FirestoreManager.shared.getUser(withID: userData.id) {
+                        // Update last login
+                        try await FirestoreManager.shared.updateUser(userID: userData.id, data: [
+                            "lastLoginAt": Timestamp()
+                        ])
+                    } else {
+                        // Create new user
+                        try await FirestoreManager.shared.addUser(userData)
+                    }
+                    completion(fullName, email, true)
+                } catch {
+                    print("Error saving user data: \(error.localizedDescription)")
+                    completion(fullName, email, true)
+                }
+            }
         } else {
             completion("No Name", "No Email", false)
         }

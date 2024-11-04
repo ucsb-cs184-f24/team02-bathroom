@@ -18,7 +18,7 @@ class FirestoreManager: ObservableObject {
             FirebaseApp.configure()
         }
     }
-    
+
     // MARK: - Models
     struct User: Identifiable {
         var id: String
@@ -29,7 +29,7 @@ class FirestoreManager: ObservableObject {
         let lastLoginAt: Timestamp
         let reviews: [DocumentReference]
     }
-    
+
     struct Bathroom: Identifiable {
         var id: String
         let buildingName: String
@@ -71,10 +71,22 @@ class FirestoreManager: ObservableObject {
             try? self.mapDocumentToReview(document)
         }
     }
-    
+
     func getUser(withID id: String) async throws -> User? {
-        let document = try await db.collection("users").document(id).getDocument()
-        return try? self.mapDocumentToUser(document)
+        let docSnapshot = try await db.collection("users").document(id).getDocument()
+        if docSnapshot.exists {
+            let data = docSnapshot.data()
+            return User(
+                id: docSnapshot.documentID,
+                authProvider: data?["authProvider"] as? String ?? "",
+                createdAt: data?["createdAt"] as? Timestamp ?? Timestamp(),
+                email: data?["email"] as? String ?? "",
+                fullName: data?["fullName"] as? String ?? "",
+                lastLoginAt: data?["lastLoginAt"] as? Timestamp ?? Timestamp(),
+                reviews: data?["reviews"] as? [DocumentReference] ?? []
+            )
+        }
+        return nil
     }
 
     // MARK: - Add Methods
@@ -89,10 +101,16 @@ class FirestoreManager: ObservableObject {
     }
 
     func addUser(_ user: User) async throws {
-        let data = try mapUserToData(user)
-        try await db.collection("users").addDocument(data: data)
+        try await db.collection("users").document(user.id).setData([
+            "authProvider": user.authProvider,
+            "createdAt": user.createdAt,
+            "email": user.email,
+            "fullName": user.fullName,
+            "lastLoginAt": user.lastLoginAt,
+            "reviews": user.reviews
+        ])
     }
-    
+
     // MARK: - Update Methods
     func updateBathroom(bathroomID: String, data: [String: Any]) async throws {
         try await db.collection("bathrooms").document(bathroomID).updateData(data)
@@ -100,6 +118,10 @@ class FirestoreManager: ObservableObject {
 
     func updateReview(reviewID: String, data: [String: Any]) async throws {
         try await db.collection("reviews").document(reviewID).updateData(data)
+    }
+
+    func updateUser(userID: String, data: [String: Any]) async throws {
+        try await db.collection("users").document(userID).updateData(data)
     }
 
     // MARK: - Delete Methods

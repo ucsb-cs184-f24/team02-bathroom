@@ -31,25 +31,35 @@ There are two types of users:
 - Admins will also be responsible for managing spam or inappropriate content that might be posted, keeping the app clean and reliable for all users.
 
 
-## Deployment Instructions
+# Installation
 To deploy the Bathroom Finder app, please follow these instructions:
 
-#### Prerequisites:
+## Prerequisites:
 - Xcode 15 or later
 - Swift 5.x
 - An Apple Developer account (for device deployment)
 
-#### Clone the Repository:
+## Dependencies:
+- Firebase Authentication
+- Firebase Firestore
+- GoogleSignIn
+
+## Installation Steps
 Run: git clone git@github.com:ucsb-cs184-f24/team02-bathroom.git
 
 #### Install Dependencies:
 - Open the ucsb-bathrooms.xcodeproj in Xcode.
-- Ensure that all dependencies are installed, especially Firebase and Google Maps SDK.
+- Ensure that all dependencies are installed, especially Firebase and GoogleSignIn
 
 #### Build and Run:
 - Select your target device and ensure it’s connected or use the simulator.
 - Click Run in Xcode to deploy to your selected device or simulator.
 
-#### Test User Roles and Permissions:
+#### Functionality:
 - Sign up as a user to test bathroom posts and reviews.
-- Use an admin account to verify content moderation features.
+- search for a bathroom
+- log in/log out
+
+#### Known Problems 
+- working on adding photos
+

@@ -30,6 +30,7 @@ class FirestoreManager: ObservableObject {
         var totalReviews: Int
         let gender: String
         let createdAt: Timestamp
+        var totalUses: Int
 
         // Add Hashable conformance
         func hash(into hasher: inout Hasher) {
@@ -57,6 +58,14 @@ class FirestoreManager: ObservableObject {
         let fullName: String
         let createdAt: Timestamp
         let lastLoginAt: Timestamp
+    }
+
+    struct UsageCount: Identifiable {
+        let id: String
+        let bathroomId: String
+        let userId: String
+        let count: Int
+        let lastUsed: Timestamp
     }
 
     // MARK: - Bathroom Methods
@@ -88,7 +97,8 @@ class FirestoreManager: ObservableObject {
                 averageRating: data["averageRating"] as? Double ?? 0.0,
                 totalReviews: data["totalReviews"] as? Int ?? 0,
                 gender: data["gender"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                totalUses: data["totalUses"] as? Int ?? 0
             )
         }
     }
@@ -245,7 +255,8 @@ class FirestoreManager: ObservableObject {
             averageRating: data["averageRating"] as? Double ?? 0.0,
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
-            createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+            createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+            totalUses: data["totalUses"] as? Int ?? 0
         )
     }
 
@@ -264,7 +275,8 @@ class FirestoreManager: ObservableObject {
             averageRating: data["averageRating"] as? Double ?? 0.0,
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
-            createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+            createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+            totalUses: data["totalUses"] as? Int ?? 0
         )
     }
 
@@ -285,6 +297,67 @@ class FirestoreManager: ObservableObject {
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
             )
+        }
+    }
+
+    func incrementUsageCount(bathroomId: String, userId: String) async throws {
+        let usageRef = db.collection("usageCounts")
+            .document("\(userId)_\(bathroomId)")
+
+        try await db.runTransaction({ (transaction, errorPointer) -> Any? in
+            let usageDoc = try? transaction.getDocument(usageRef)
+
+            if let doc = usageDoc, doc.exists {
+                // Increment existing count
+                let currentCount = doc.data()?["count"] as? Int ?? 0
+                transaction.updateData([
+                    "count": currentCount + 1,
+                    "lastUsed": Timestamp()
+                ], forDocument: usageRef)
+            } else {
+                // Create new count
+                transaction.setData([
+                    "bathroomId": bathroomId,
+                    "userId": userId,
+                    "count": 1,
+                    "lastUsed": Timestamp()
+                ], forDocument: usageRef)
+            }
+
+            return nil
+        })
+
+        // Update total usage count for the bathroom
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+        try await bathroomRef.updateData([
+            "totalUses": FieldValue.increment(Int64(1))
+        ])
+    }
+
+    func getUserUsageCounts(userId: String) async throws -> [UsageCount] {
+        let snapshot = try await db.collection("usageCounts")
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments()
+
+        return snapshot.documents.map { doc in
+            let data = doc.data()
+            return UsageCount(
+                id: doc.documentID,
+                bathroomId: data["bathroomId"] as? String ?? "",
+                userId: data["userId"] as? String ?? "",
+                count: data["count"] as? Int ?? 0,
+                lastUsed: data["lastUsed"] as? Timestamp ?? Timestamp()
+            )
+        }
+    }
+
+    func getTotalUserUses(userId: String) async throws -> Int {
+        let snapshot = try await db.collection("usageCounts")
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments()
+
+        return snapshot.documents.reduce(0) { sum, doc in
+            sum + (doc.data()["count"] as? Int ?? 0)
         }
     }
 }

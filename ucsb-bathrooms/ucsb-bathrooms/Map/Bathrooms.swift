@@ -16,10 +16,10 @@ class Bathrooms: Identifiable {
     var longitude: Double?
     var latitudeDelta: Double?
     var longitudeDelta: Double?
-    
+
     @Relationship(deleteRule: .cascade)
     var placemarks: [BathroomMark] = []
-    
+
     init(name: String, latitude: Double? = nil, longitude: Double? = nil, latitudeDelta: Double? = nil, longitudeDelta: Double? = nil) {
         self.name = name
         self.latitude = latitude
@@ -27,7 +27,7 @@ class Bathrooms: Identifiable {
         self.latitudeDelta = latitudeDelta
         self.longitudeDelta = longitudeDelta
     }
-    
+
     var region: MKCoordinateRegion? {
         if let latitude, let longitude, let latitudeDelta, let longitudeDelta {
             return MKCoordinateRegion(
@@ -50,7 +50,7 @@ extension Bathrooms {
                 isStoredInMemoryOnly: true
             )
         )
-        
+
         let ucsb = Bathrooms(
             name: "UCSB",
             latitude: 34.41332,
@@ -58,9 +58,9 @@ extension Bathrooms {
             latitudeDelta: 0.015,
             longitudeDelta: 0.015
         )
-        
+
         container.mainContext.insert(ucsb)
-        
+
         let placeMarks: [BathroomMark] = [
             BathroomMark(name: "testing location", latitude: 34.13556, longitude: -118.02218),
             BathroomMark(name: "USC Arcadia Hospital", latitude: 34.13415, longitude: -118.04146),
@@ -70,11 +70,11 @@ extension Bathrooms {
             BathroomMark(name: "iv theater", latitude: 34.41135, longitude: -119.85497),
             BathroomMark(name: "testing - Lan Noodles", latitude: 34.14049, longitude: -118.02126)
         ]
-        
+
         placeMarks.forEach { placemark in
             ucsb.placemarks.append(placemark)
         }
-        
+
         return container
     }
 }

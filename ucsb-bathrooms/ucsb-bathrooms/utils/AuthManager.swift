@@ -11,9 +11,11 @@ import GoogleSignIn
 import AuthenticationServices
 import SwiftUI
 
-class AuthManager {
+class AuthManager: ObservableObject {
 
     static let shared = AuthManager()
+
+    private init() {}
 
     // MARK: - Google Sign-In
     func signInWithGoogle(completion: @escaping (String, String, Bool) -> Void) {
@@ -37,27 +39,24 @@ class AuthManager {
 
             let userFullName = signInResult.user.profile?.name ?? "No Name"
             let userEmail = signInResult.user.profile?.email ?? "No Email"
+            let userID = signInResult.user.userID ?? UUID().uuidString
 
             // Create user data for Firestore
             let userData = FirestoreManager.User(
-                id: signInResult.user.userID ?? UUID().uuidString,
+                id: userID,
                 authProvider: "google",
-                createdAt: Timestamp(),
                 email: userEmail,
                 fullName: userFullName,
-                lastLoginAt: Timestamp(),
-                reviews: []
+                createdAt: Timestamp(),
+                lastLoginAt: Timestamp()
             )
 
             // Save to Firestore
             Task {
                 do {
-                    // Check if user exists
-                    if let _ = try await FirestoreManager.shared.getUser(withID: userData.id) {
+                    if let _ = try await FirestoreManager.shared.getUser(withID: userID) {
                         // Update last login
-                        try await FirestoreManager.shared.updateUser(userID: userData.id, data: [
-                            "lastLoginAt": Timestamp()
-                        ])
+                        try await FirestoreManager.shared.updateUserLastLogin(userID: userID)
                     } else {
                         // Create new user
                         try await FirestoreManager.shared.addUser(userData)
@@ -74,9 +73,11 @@ class AuthManager {
     // MARK: - Apple Sign-In
     func handleAppleSignIn(_ authResults: ASAuthorization, completion: @escaping (String, String, Bool) -> Void) {
         if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
+            let userID = appleIDCredential.user
             let fullName = appleIDCredential.fullName?.givenName ?? "Unknown"
             let email = appleIDCredential.email ?? "No Email"
 
+            // Save email to UserDefaults if it's the first login
             if let firstLoginEmail = appleIDCredential.email {
                 UserDefaults.standard.set(firstLoginEmail, forKey: "userEmail")
             } else {
@@ -88,24 +89,20 @@ class AuthManager {
 
             // Create user data for Firestore
             let userData = FirestoreManager.User(
-                id: appleIDCredential.user,
+                id: userID,
                 authProvider: "apple",
-                createdAt: Timestamp(),
                 email: email,
                 fullName: fullName,
-                lastLoginAt: Timestamp(),
-                reviews: []
+                createdAt: Timestamp(),
+                lastLoginAt: Timestamp()
             )
 
             // Save to Firestore
             Task {
                 do {
-                    // Check if user exists
-                    if let _ = try await FirestoreManager.shared.getUser(withID: userData.id) {
+                    if let _ = try await FirestoreManager.shared.getUser(withID: userID) {
                         // Update last login
-                        try await FirestoreManager.shared.updateUser(userID: userData.id, data: [
-                            "lastLoginAt": Timestamp()
-                        ])
+                        try await FirestoreManager.shared.updateUserLastLogin(userID: userID)
                     } else {
                         // Create new user
                         try await FirestoreManager.shared.addUser(userData)

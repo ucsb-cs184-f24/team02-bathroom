@@ -12,5 +12,5 @@ Kendrick -> Megumi\
 Megumi -> Justin\
 Justin -> Luis\
 Luis -> Jiaqi\
-Jiaqi -> Thienan\
+Jiaqi -> Thienan
 

@@ -16,6 +16,7 @@ Stop\
 Continue\
 -Continue communicating through Slack and iMesssages<br />
 -Continue working on frontend<br />
+-Continue adding bathrooms to database <br />
 -Continue brainstorming new potential features/improvements to current functionality<br />
 
 ## Action item

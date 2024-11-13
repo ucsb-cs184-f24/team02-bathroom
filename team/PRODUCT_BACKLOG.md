@@ -6,7 +6,7 @@ I want to search for bathrooms by location or browse available facilities,\
 so that I can quickly find the nearest bathroom.
 
 ### Rating System
-As a user,\ 
+As a user,\
 I want to rate bathrooms based on cleanliness, accessibility, and comfort, \
 so that I can give and view an overall quality score.
 

@@ -7,7 +7,7 @@ How: Conduct a survey or usability test where users rank their preferred rating 
 
 What to Test: Evaluate how users experience the location-based search feature, particularly whether the results are relevant and accurate based on their proximity.\
 Why: Accurate and intuitive search results are crucial for user satisfaction, as the app's primary goal is to help users find nearby bathrooms.\
-How: Set up a study where users simulate searching for bathrooms from different campus locations and gather feedback on the search functionality.\
+How: Set up a study where users simulate searching for bathrooms from different campus locations and gather feedback on the search functionality.
 ## User Satisfaction with Post Moderation
 
 What to Test: Assess whether users feel the app strikes the right balance between allowing open feedback and ensuring reviews are appropriate.\

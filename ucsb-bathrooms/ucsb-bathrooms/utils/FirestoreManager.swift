@@ -31,6 +31,9 @@ class FirestoreManager: ObservableObject {
         let gender: String
         let createdAt: Timestamp
         var totalUses: Int
+        var cleanlinessRating: Double  // New field for cleanliness rating
+        var totalCleanlinessLogs: Int  // New field for total cleanliness logs
+
 
         // Add Hashable conformance
         func hash(into hasher: inout Hasher) {
@@ -98,7 +101,9 @@ class FirestoreManager: ObservableObject {
                 totalReviews: data["totalReviews"] as? Int ?? 0,
                 gender: data["gender"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                totalUses: data["totalUses"] as? Int ?? 0
+                totalUses: data["totalUses"] as? Int ?? 0,
+                cleanlinessRating: data["cleanlinessRating"] as? Double ?? 0.0, // Added field
+                totalCleanlinessLogs: data["totalCleanlinessLogs"] as? Int ?? 0 // Added field
             )
         }
     }
@@ -167,6 +172,39 @@ class FirestoreManager: ObservableObject {
             )
         }
     }
+    
+    func logCleanliness(bathroomId: String, userId: String, cleanlinessRating: Double) async throws {
+        let cleanlinessData: [String: Any] = [
+            "bathroomId": bathroomId,
+            "userId": userId,
+            "cleanlinessRating": cleanlinessRating,
+            "createdAt": Timestamp()
+        ]
+
+        // Add cleanliness log
+        let cleanlinessRef = db.collection("cleanlinessLogs").document()
+        try await cleanlinessRef.setData(cleanlinessData)
+
+        // Get all cleanliness logs to calculate new average cleanliness
+        let logsSnapshot = try await db.collection("cleanlinessLogs")
+            .whereField("bathroomId", isEqualTo: bathroomId)
+            .getDocuments()
+
+        let cleanlinessLogs = logsSnapshot.documents.map { document -> Double in
+            let data = document.data()
+            return data["cleanlinessRating"] as? Double ?? 0.0
+        }
+
+        let totalLogs = cleanlinessLogs.count
+        let averageCleanliness = cleanlinessLogs.isEmpty ? 0.0 : cleanlinessLogs.reduce(0.0, +) / Double(totalLogs)
+
+        // Update the bathroom with the new cleanliness data
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+        try await bathroomRef.updateData([
+            "cleanlinessRating": averageCleanliness,
+            "totalCleanlinessLogs": totalLogs
+        ])
+    }
 
     // Add a method to add a bathroom
     func addBathroom(buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String) async throws {
@@ -177,7 +215,9 @@ class FirestoreManager: ObservableObject {
             "averageRating": 0.0,
             "totalReviews": 0,
             "createdAt": Timestamp(),
-            "gender": gender
+            "gender": gender,
+            "cleanlinessRating": 0.0,  // New field
+            "totalCleanlinessLogs": 0  // New field
         ]
 
         let docRef = try await db.collection("bathrooms").addDocument(data: bathroomData)
@@ -256,7 +296,9 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0
+            totalUses: data["totalUses"] as? Int ?? 0,
+            cleanlinessRating: data["cleanlinessRating"] as? Double ?? 0.0, // Added field
+            totalCleanlinessLogs: data["totalCleanlinessLogs"] as? Int ?? 0 // Added field
         )
     }
 
@@ -276,7 +318,9 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0
+            totalUses: data["totalUses"] as? Int ?? 0,
+            cleanlinessRating: data["cleanlinessRating"] as? Double ?? 0.0, // Added field
+            totalCleanlinessLogs: data["totalCleanlinessLogs"] as? Int ?? 0 // Added field
         )
     }
 

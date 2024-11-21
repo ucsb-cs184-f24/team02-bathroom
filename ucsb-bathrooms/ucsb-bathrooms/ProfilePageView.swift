@@ -78,7 +78,13 @@ struct ProfilePageView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Profile")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
+                NavigationLink(destination: SettingsPageView() ) {
+                            Image(systemName: "gearshape.fill")
+                            .foregroundColor(.blue)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showSignOutAlert = true
                     } label: {

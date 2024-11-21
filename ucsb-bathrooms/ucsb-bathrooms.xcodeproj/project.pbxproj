@@ -285,7 +285,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = T4YWKDW4T2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
@@ -316,7 +316,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = T4YWKDW4T2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";

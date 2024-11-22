@@ -15,7 +15,6 @@ struct BathroomMapView: View {
     @State private var bathrooms: [FirestoreManager.Bathroom] = []
     @State private var selectedBathroom: FirestoreManager.Bathroom?
     @State private var isNavigatingToDetail = false
-    @State private var showingLocationErrorAlert = false
     @State private var worstBathroomIDs: Set<String> = []
     @State private var bestBathroomIDs: Set<String> = []
     @State private var region = MKCoordinateRegion(

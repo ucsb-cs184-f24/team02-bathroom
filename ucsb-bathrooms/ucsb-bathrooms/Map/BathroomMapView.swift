@@ -15,6 +15,10 @@ struct BathroomMapView: View {
     @State private var bathrooms: [FirestoreManager.Bathroom] = []
     @State private var selectedBathroom: FirestoreManager.Bathroom?
     @State private var isNavigatingToDetail = false
+    @State private var showingLocationErrorAlert = false
+    @State private var initialLocation: CLLocationCoordinate2D?
+    @State private var worstBathroomIDs: Set<String> = []
+    @State private var bestBathroomIDs: Set<String> = []
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 34.4140,
@@ -69,7 +73,9 @@ struct BathroomMapView: View {
                 )
             ) {
                 BathroomMarker(
-                    isSelected: selectedBathroom?.id == bathroom.id
+                    isSelected: selectedBathroom?.id == bathroom.id,
+                    isWorstBathroom: worstBathroomIDs.contains(bathroom.id),
+                    isBestBathroom: bestBathroomIDs.contains(bathroom.id)
                 ) {
                     withAnimation {
                         selectedBathroom = bathroom
@@ -139,6 +145,21 @@ struct BathroomMapView: View {
     private func loadBathrooms() async {
         do {
             bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+            if let minRating = bathrooms.map({ $0.averageRating }).min() {
+                        worstBathroomIDs = Set(
+                            bathrooms
+                                .filter { $0.averageRating == minRating }
+                                .map { $0.id }
+                        )
+            }
+            if let maxRating = bathrooms.map({ $0.averageRating }).max() {
+                        bestBathroomIDs = Set(
+                            bathrooms
+                                .filter { $0.averageRating == maxRating }
+                                .map { $0.id }
+                        )
+                //print("Best Bathroom IDs: \(bestBathroomIDs)")
+            }
         } catch {
             print("Error loading bathrooms: \(error)")
         }
@@ -149,6 +170,8 @@ struct BathroomMapView: View {
 
 struct BathroomMarker: View {
     let isSelected: Bool
+    let isWorstBathroom: Bool
+    let isBestBathroom: Bool
     let action: () -> Void
 
     var body: some View {
@@ -167,12 +190,22 @@ struct BathroomMarker: View {
             .padding(8)
             .background(
                 Circle()
-                    .fill(Color.white)
+                    .fill(markerColor)
                     .shadow(radius: 2)
             )
         }
         .buttonStyle(PlainButtonStyle())
     }
+    
+    private var markerColor: Color {
+            if isBestBathroom {
+                return Color.yellow
+            } else if isWorstBathroom {
+                return Color.red
+            } else {
+                return Color.white
+            }
+        }
 }
 
 struct BathroomPreviewCard: View {

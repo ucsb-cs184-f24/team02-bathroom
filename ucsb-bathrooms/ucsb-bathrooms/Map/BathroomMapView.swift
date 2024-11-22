@@ -199,7 +199,7 @@ struct BathroomMarker: View {
     
     private var markerColor: Color {
             if isBestBathroom {
-                return Color.yellow
+                return Color.green
             } else if isWorstBathroom {
                 return Color.red
             } else {

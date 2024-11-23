@@ -184,6 +184,8 @@ struct BathroomMarker: View {
     private var markerColor: Color {
         if isBestBathroom {
             return Color.green
+                .adjustBrightness(-0.2)
+                .adjustSaturation(-0.3)
         } else if isWorstBathroom {
             return Color.red
                         .adjustBrightness(-0.2)

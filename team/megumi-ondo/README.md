@@ -5,8 +5,8 @@ This document outlines the User Evaluation contribution to the Bathroom Finder a
 ## Evaluation Goal
 The primary aim of this User Evaluation was to gather insights on:\
 
-### Usability: How easily users can navigate the bathroom search and review process.\
-### Effectiveness: How well the app helps users find and rate bathrooms.\
+### Usability: How easily users can navigate the bathroom search and review process.
+### Effectiveness: How well the app helps users find and rate bathrooms.
 ### User Experience: Identifying pain points and areas of improvement in the interaction flow, especially for searching and reviewing.
 # Methodology
 ## Participants
@@ -25,7 +25,7 @@ User Feedback: Some participants felt that while these filters were useful, addi
 
 Users were able to rate and leave reviews for bathrooms without major issues.\
 User Feedback: Several users suggested that the process could be improved by introducing clearer guidance on how to submit reviews, such as brief instructions on how to rate the bathroom or a reminder to leave a comment after rating.\
-##Overall User Interface:
+## Overall User Interface:
 
 Most users found the app interface easy to use but some suggested making the buttons and options more prominent to avoid confusion.\
 Suggestion: A more intuitive layout with better visual cues for actions like posting reviews and searching for bathrooms.\
@@ -36,20 +36,15 @@ Some users were uncertain about whether their review had been successfully poste
 ## Recommendations for Improvement
 Based on the feedback gathered from participants, the following improvements are suggested:\
 
-## Enhance Review Submission Process:\
+### Enhance Review Submission Process:\
 
-Provide a brief on-screen instructional message or tooltips explaining how to leave a review after rating a bathroom.\
 Confirmations: Once a user posts a review, provide a confirmation message or visual indicator to reassure them their review was submitted successfully.
 ## Bathroom Search Features:
 
-While the current location and rating-based search features work well, users expressed interest in adding a cleanliness rating or overall user feedback score to help them make better decisions when choosing a bathroom.
-## UI Enhancements:
+While the current location and rating-based search features work well, users expressed interest in adding a cleanliness rating.
 
-Improve the visibility of buttons and key actions in the app, such as "rate this bathroom" or "post a review."\
-Provide clearer feedback on the status of actions (e.g., a success or error message when submitting a review).\
-Acceptance Criteria (Definition of Done)
 
-# Future Trajectory
+# Overall
 ## Lessons Learned:
 The evaluation uncovered key insights into areas where the app's usability can be improved. Specifically, users appreciate the search and review functionalities but need clearer guidance and better feedback when interacting with the app.
 

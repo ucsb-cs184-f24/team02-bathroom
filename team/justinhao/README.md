@@ -40,4 +40,6 @@ Based on the feedback received from these user feedback ideas, we will prioritiz
 
 #Basic Unit Test
 
+Basic unit test to test user creation, reviews, adding bathrooms, etc
+
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/90457a67-645b-41a5-9d62-060e5aa1ed6e">

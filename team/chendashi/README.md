@@ -15,7 +15,7 @@ This update introduces enhancements to bathroom markers by dynamically changing 
    @State private var bestBathroomIDs: Set<String> = []
    ```
 2. **Identifying Best and Worst Bathrooms**
-   Bathrooms are enumerated to find the minimum and maximum average ratings, and their IDs are added to the state variables:
+   Bathrooms are enumerated during the loading phase to find the minimum and maximum average ratings, and their IDs are added to the state variables:
 ```swift
 if let minRating = bathrooms.map({ $0.averageRating }).min() {
 if let maxRating = bathrooms.map({ $0.averageRating }).max() {

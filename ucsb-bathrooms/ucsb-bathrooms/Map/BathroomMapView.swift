@@ -174,36 +174,24 @@ struct BathroomMarker: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 0) {
-                Image(systemName: "toilet.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .blue : .gray)
-
-                Image(systemName: "triangle.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(isSelected ? .blue : .gray)
-                    .rotationEffect(.degrees(180))
-                    .offset(y: -5)
-            }
-            .padding(8)
-            .background(
-                Circle()
-                    .fill(markerColor)
-                    .shadow(radius: 2)
-            )
+            Image(systemName: isSelected ? "toilet.circle.fill" : "toilet.circle")
+                .font(.system(size: 24))
+                .foregroundColor(markerColor)
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     private var markerColor: Color {
-            if isBestBathroom {
-                return Color.green
-            } else if isWorstBathroom {
-                return Color.red
-            } else {
-                return Color.white
-            }
+        if isBestBathroom {
+            return Color.green
+        } else if isWorstBathroom {
+            return Color.red
+                        .adjustBrightness(-0.2)
+                        .adjustSaturation(-0.2)
+        } else {
+            return Color.white.adjustBrightness(-0.1)
         }
+    }
 }
 
 struct BathroomPreviewCard: View {

@@ -5,9 +5,9 @@ This document outlines the User Evaluation contribution to the Bathroom Finder a
 ## Evaluation Goal
 The primary aim of this User Evaluation was to gather insights on:\
 
-Usability: How easily users can navigate the bathroom search and review process.\
-Effectiveness: How well the app helps users find and rate bathrooms.\
-User Experience: Identifying pain points and areas of improvement in the interaction flow, especially for searching and reviewing.
+### Usability: How easily users can navigate the bathroom search and review process.\
+### Effectiveness: How well the app helps users find and rate bathrooms.\
+### User Experience: Identifying pain points and areas of improvement in the interaction flow, especially for searching and reviewing.
 # Methodology
 ## Participants
 Number of Participants: 3 UCSB iOS app testers 

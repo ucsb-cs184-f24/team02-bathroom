@@ -52,4 +52,11 @@ The evaluation uncovered key insights into areas where the app's usability can b
 Implement the recommended UI improvements to make the review process more intuitive.\
 Add additional information to the search results.\
 Conduct another round of testing to validate these improvements.\
-By incorporating these improvements, we can make the app more user-friendly and ensure a better experience for UCSB students and staff.
+By incorporating these improvements, we can make the app more user-friendly and ensure a better experience for UCSB students and staff.\
+
+
+Potential edit based on the suggestions:
+<img width="384" alt="Screenshot 2024-11-22 at 9 46 32 PM" src="https://github.com/user-attachments/assets/7100b6cc-581a-4127-b128-de0789308103">
+
+
+

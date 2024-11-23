@@ -17,6 +17,7 @@ Feedback Summary: Users wanted more detailed rating options beyond the existing 
 Proposed Improvements:
 
 Additional Rating Criteria: Introduce sub-ratings for cleanliness, accessibility, and occupancy levels. This allows users to provide detailed feedback on different facets of each bathroom.
+
 Cleanliness: Rate the overall cleanliness of the facility.
 
 Accessibility: Evaluate how accessible the bathroom is for individuals with disabilities.

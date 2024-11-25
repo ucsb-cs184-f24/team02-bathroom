@@ -175,7 +175,7 @@ struct BathroomMarker: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: isSelected ? "toilet.circle.fill" : "toilet.circle")
-                .font(.system(size: 27))
+                .font(.system(size: 28))
                 .foregroundColor(markerColor)
         }
         .buttonStyle(PlainButtonStyle())
@@ -191,7 +191,7 @@ struct BathroomMarker: View {
                         .adjustBrightness(-0.2)
                         .adjustSaturation(-0.2)
         } else {
-            return Color.white.adjustBrightness(-0.15)
+            return Color.blue.adjustBrightness(+0.65).adjustBrightness(+1)
         }
     }
 }

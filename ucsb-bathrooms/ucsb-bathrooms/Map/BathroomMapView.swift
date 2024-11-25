@@ -15,6 +15,9 @@ struct BathroomMapView: View {
     @State private var bathrooms: [FirestoreManager.Bathroom] = []
     @State private var selectedBathroom: FirestoreManager.Bathroom?
     @State private var isNavigatingToDetail = false
+    @State private var isNavigatingToAddBathroom = false
+    @State private var showingLocationErrorAlert = false
+    @State private var initialLocation: CLLocationCoordinate2D?
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 34.4140,
@@ -47,6 +50,31 @@ struct BathroomMapView: View {
                 )
                 .zIndex(2)
             }
+            //.bottomTrailing
+            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    NavigationLink(
+                                        destination: AddBathroomView(
+                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center
+                                        ),
+                                        isActive: $isNavigatingToAddBathroom
+                                    ) {
+                                        Button {
+                                            isNavigatingToAddBathroom = true
+                                        } label: {
+                                            Image(systemName: "plus")
+                                                .font(.title2)
+                                                .padding()
+                                                .background(Color(.systemBackground))
+                                                .clipShape(Circle())
+                                                .shadow(radius: 1.5)
+                                        }
+                                    }
+                                    .padding()
+                                }
+                            }
         }
         .animation(.easeInOut(duration: 0.3), value: selectedBathroom)
         .task {

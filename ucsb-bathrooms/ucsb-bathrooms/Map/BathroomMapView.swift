@@ -11,12 +11,12 @@ import SwiftData
 import CoreLocation
 
 struct BathroomMapView: View {
+    @State private var worstBathroomIDs: Set<String> = []
+    @State private var bestBathroomIDs: Set<String> = []
     @StateObject private var locationManager = LocationManager()
     @State private var bathrooms: [FirestoreManager.Bathroom] = []
     @State private var selectedBathroom: FirestoreManager.Bathroom?
     @State private var isNavigatingToDetail = false
-    @State private var worstBathroomIDs: Set<String> = []
-    @State private var bestBathroomIDs: Set<String> = []
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 34.4140,

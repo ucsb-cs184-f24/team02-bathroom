@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1FDF48C62CFDE6C700AF0823 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 1FDF48C52CFDE6C700AF0823 /* FirebaseStorage */; };
+		1FDF48C82CFDE7A200AF0823 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 1FDF48C72CFDE7A200AF0823 /* FirebaseStorage */; };
 		344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F22CC918AC00DB82F8 /* FirebaseAuth */; };
 		344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F42CC918AC00DB82F8 /* FirebaseCore */; };
 		344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 344366F92CC91A9500DB82F8 /* GoogleSignIn */; };
@@ -46,7 +48,9 @@
 				344366F52CC918AC00DB82F8 /* FirebaseCore in Frameworks */,
 				348837062CD55874002E4390 /* FirebaseFirestore in Frameworks */,
 				344366F32CC918AC00DB82F8 /* FirebaseAuth in Frameworks */,
+				1FDF48C62CFDE6C700AF0823 /* FirebaseStorage in Frameworks */,
 				344366FA2CC91A9500DB82F8 /* GoogleSignIn in Frameworks */,
+				1FDF48C82CFDE7A200AF0823 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,6 +97,8 @@
 				344366F42CC918AC00DB82F8 /* FirebaseCore */,
 				344366F92CC91A9500DB82F8 /* GoogleSignIn */,
 				348837052CD55874002E4390 /* FirebaseFirestore */,
+				1FDF48C52CFDE6C700AF0823 /* FirebaseStorage */,
+				1FDF48C72CFDE7A200AF0823 /* FirebaseStorage */,
 			);
 			productName = "ucsb-bathrooms";
 			productReference = 34E712502CB72F6A00C3D9B6 /* ucsb-bathrooms.app */;
@@ -285,7 +291,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = Q7FJG2V238;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
@@ -316,7 +322,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ucsb-bathrooms/Preview Content\"";
-				DEVELOPMENT_TEAM = L33J4YU2V8;
+				DEVELOPMENT_TEAM = Q7FJG2V238;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "ucsb-bathrooms/Info.plist";
@@ -381,6 +387,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1FDF48C52CFDE6C700AF0823 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseStorage;
+		};
+		1FDF48C72CFDE7A200AF0823 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseStorage;
+		};
 		344366F22CC918AC00DB82F8 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 344366F12CC918AC00DB82F8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

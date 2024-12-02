@@ -19,6 +19,8 @@ struct AddBathroomView: View {
     @State private var isLoading = false
     @State private var errorMessage: String = ""
     @State private var showAlert = false
+    @State private var showImagePicker = false
+    @State private var selectedImage: UIImage?
 
     @State private var region: MKCoordinateRegion
 
@@ -64,6 +66,22 @@ struct AddBathroomView: View {
                         Text("Male").tag("Male")
                         Text("Female").tag("Female")
                     }
+
+                    // Image Selection
+                    Button(action: { showImagePicker = true }) {
+                        HStack {
+                            Image(systemName: "photo")
+                            Text(selectedImage == nil ? "Add Photo" : "Change Photo")
+                        }
+                    }
+
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                            .cornerRadius(10)
+                    }
                 }
 
                 Section {
@@ -89,6 +107,9 @@ struct AddBathroomView: View {
                     message: Text(errorMessage),
                     dismissButton: .default(Text("OK"))
                 )
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ImagePicker(image: $selectedImage)
             }
         }
     }
@@ -117,7 +138,8 @@ struct AddBathroomView: View {
                     floor: floor,
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    gender: selectedGender
+                    gender: selectedGender,
+                    image: selectedImage  // Pass the UIImage directly
                 )
                 await MainActor.run {
                     isLoading = false

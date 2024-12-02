@@ -7,6 +7,7 @@
 
 import FirebaseFirestore
 import FirebaseCore
+import FirebaseStorage
 
 class FirestoreManager: ObservableObject {
     static let shared = FirestoreManager()
@@ -20,25 +21,21 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Models
-    struct Bathroom: Identifiable, Hashable {
+    struct Bathroom: Identifiable, Equatable {
         let id: String
         let name: String
         let buildingName: String
         let floor: Int
         let location: GeoPoint
-        var averageRating: Double
-        var totalReviews: Int
+        let averageRating: Double
+        let totalReviews: Int
         let gender: String
         let createdAt: Timestamp
-        var totalUses: Int
-
-        // Add Hashable conformance
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(id)
-        }
+        let totalUses: Int
+        let imageURL: String?
 
         static func == (lhs: Bathroom, rhs: Bathroom) -> Bool {
-            lhs.id == rhs.id
+            return lhs.id == rhs.id
         }
     }
 
@@ -69,7 +66,21 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Bathroom Methods
-    func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String) async throws {
+    func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String, image: UIImage?) async throws {
+        var imageURL: String? = nil
+
+        if let image = image {
+            guard let imageData = image.jpegData(compressionQuality: 0.5) else {
+                throw NSError(domain: "ImageProcessingError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to process image"])
+            }
+
+            let storageRef = Storage.storage().reference()
+            let imageRef = storageRef.child("bathrooms/\(UUID().uuidString).jpg")
+
+            _ = try await imageRef.putData(imageData, metadata: nil)
+            imageURL = try await imageRef.downloadURL().absoluteString
+        }
+
         let bathroomData: [String: Any] = [
             "name": name,
             "buildingName": buildingName,
@@ -78,7 +89,8 @@ class FirestoreManager: ObservableObject {
             "averageRating": 0.0,
             "totalReviews": 0,
             "gender": gender,
-            "createdAt": Timestamp()
+            "createdAt": Timestamp(),
+            "imageURL": imageURL
         ]
 
         try await db.collection("bathrooms").document().setData(bathroomData)
@@ -98,7 +110,8 @@ class FirestoreManager: ObservableObject {
                 totalReviews: data["totalReviews"] as? Int ?? 0,
                 gender: data["gender"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                totalUses: data["totalUses"] as? Int ?? 0
+                totalUses: data["totalUses"] as? Int ?? 0,
+                imageURL: data["imageURL"] as? String
             )
         }
     }
@@ -256,7 +269,8 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0
+            totalUses: data["totalUses"] as? Int ?? 0,
+            imageURL: data["imageURL"] as? String
         )
     }
 
@@ -276,7 +290,8 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0
+            totalUses: data["totalUses"] as? Int ?? 0,
+            imageURL: data["imageURL"] as? String
         )
     }
 
@@ -359,5 +374,26 @@ class FirestoreManager: ObservableObject {
         return snapshot.documents.reduce(0) { sum, doc in
             sum + (doc.data()["count"] as? Int ?? 0)
         }
+    }
+
+    private func processImage(_ image: UIImage) -> Data? {
+        // Convert to compatible color space
+        let imageRect = CGRect(origin: .zero, size: image.size)
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        guard let context = CGContext(data: nil,
+                                    width: Int(image.size.width),
+                                    height: Int(image.size.height),
+                                    bitsPerComponent: 8,
+                                    bytesPerRow: 0,
+                                    space: colorSpace,
+                                    bitmapInfo: bitmapInfo.rawValue),
+              let processedImage = context.makeImage().flatMap({ UIImage(cgImage: $0) }) else {
+            return nil
+        }
+
+        // Compress the image
+        return processedImage.jpegData(compressionQuality: 0.5)
     }
 }

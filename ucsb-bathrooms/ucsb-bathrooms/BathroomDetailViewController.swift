@@ -239,7 +239,8 @@ struct BathroomDetailView: View {
                         totalReviews: newTotalReviews,
                         gender: currentBathroom.gender,
                         createdAt: currentBathroom.createdAt,
-                        totalUses: currentBathroom.totalUses
+                        totalUses: currentBathroom.totalUses,
+                        imageURL: currentBathroom.imageURL
                     )
                     bathroom = updatedBathroom
                 }
@@ -308,7 +309,8 @@ struct BathroomDetailView: View {
                         totalReviews: currentBathroom.totalReviews,
                         gender: currentBathroom.gender,
                         createdAt: currentBathroom.createdAt,
-                        totalUses: currentBathroom.totalUses + 1
+                        totalUses: currentBathroom.totalUses + 1,
+                        imageURL: currentBathroom.imageURL
                     )
                     bathroom = updatedBathroom
                 }

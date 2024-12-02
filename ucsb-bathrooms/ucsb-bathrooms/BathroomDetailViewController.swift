@@ -17,6 +17,8 @@ struct BathroomDetailView: View {
     @AppStorage("isAuthenticated") private var isAuthenticated: Bool = false
     @State private var usageCount: Int = 0
     @State private var showingUsageAlert = false
+    @State private var showImagePicker = false
+    @State private var selectedImage: UIImage?
 
     private func loadBathroomData() async {
         do {
@@ -139,9 +141,27 @@ struct BathroomDetailView: View {
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(4, reservesSpace: true)
 
+                    Button(action: { showImagePicker = true }) {
+                        HStack {
+                            Image(systemName: "photo")
+                            Text(selectedImage == nil ? "Add Photo" : "Change Photo")
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                            .cornerRadius(10)
+                    }
+
                     Button {
                         Task {
-                            await handleSubmitReview()
+                            await submitReview()
                         }
                     } label: {
                         HStack {
@@ -197,70 +217,41 @@ struct BathroomDetailView: View {
                 await loadUserUsageCount()
             }
         }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(image: $selectedImage)
+        }
     }
 
-    private func handleSubmitReview() async {
+    private func submitReview() {
+        guard !isLoading else { return }
         isLoading = true
 
-        do {
-            try await FirestoreManager.shared.addReview(
-                bathroomId: bathroomID,
-                userId: userEmail,
-                rating: Double(rating),
-                comment: reviewText
-            )
+        Task {
+            do {
+                try await FirestoreManager.shared.addReview(
+                    bathroomId: bathroom?.id ?? "",
+                    rating: Double(rating),
+                    comment: reviewText,
+                    image: selectedImage
+                )
 
-            // Immediately update the reviews array with the new review
-            let newReview = FirestoreManager.Review(
-                id: UUID().uuidString,
-                bathroomId: bathroomID,
-                userId: userEmail,
-                rating: Double(rating),
-                comment: reviewText,
-                createdAt: Timestamp()
-            )
-
-            await MainActor.run {
-                // Add the new review to the beginning of the array
-                reviews.insert(newReview, at: 0)
-
-                // Update bathroom stats immediately
-                if let currentBathroom = bathroom {
-                    let newTotalReviews = currentBathroom.totalReviews + 1
-                    let newAverageRating = ((currentBathroom.averageRating * Double(currentBathroom.totalReviews)) + Double(rating)) / Double(newTotalReviews)
-
-                    let updatedBathroom = FirestoreManager.Bathroom(
-                        id: currentBathroom.id,
-                        name: currentBathroom.name,
-                        buildingName: currentBathroom.buildingName,
-                        floor: currentBathroom.floor,
-                        location: currentBathroom.location,
-                        averageRating: newAverageRating,
-                        totalReviews: newTotalReviews,
-                        gender: currentBathroom.gender,
-                        createdAt: currentBathroom.createdAt,
-                        totalUses: currentBathroom.totalUses,
-                        imageURL: currentBathroom.imageURL
-                    )
-                    bathroom = updatedBathroom
+                await MainActor.run {
+                    reviewText = ""
+                    rating = 3
+                    selectedImage = nil
+                    isLoading = false
+                    alertMessage = "Review submitted successfully!"
+                    showAlert = true
                 }
 
-                reviewText = ""
-                rating = 3
-                isLoading = false
-                alertMessage = "Review submitted successfully!"
-                showAlert = true
-            }
-
-            // Refresh the actual data from Firestore
-            await loadBathroomData()
-            await loadReviews()
-
-        } catch {
-            await MainActor.run {
-                isLoading = false
-                alertMessage = "Error submitting review: \(error.localizedDescription)"
-                showAlert = true
+                await loadBathroomData()
+                await loadReviews()
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    alertMessage = error.localizedDescription
+                    showAlert = true
+                }
             }
         }
     }
@@ -360,6 +351,19 @@ struct ReviewCardView: View {
             Text(review.comment)
                 .font(.body)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if let imageURL = review.imageURL,
+               let url = URL(string: imageURL) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .cornerRadius(10)
+                } placeholder: {
+                    ProgressView()
+                }
+            }
         }
         .padding()
         .background(Color(.systemBackground))

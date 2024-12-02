@@ -8,6 +8,7 @@
 import FirebaseFirestore
 import FirebaseCore
 import FirebaseStorage
+import FirebaseAuth
 
 class FirestoreManager: ObservableObject {
     static let shared = FirestoreManager()
@@ -40,12 +41,14 @@ class FirestoreManager: ObservableObject {
     }
 
     struct Review: Identifiable {
-        var id: String
+        let id: String
         let bathroomId: String
         let userId: String
+        let userEmail: String
         let rating: Double
         let comment: String
         let createdAt: Timestamp
+        let imageURL: String?
     }
 
     struct User: Identifiable {
@@ -117,45 +120,44 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Review Methods
-    func addReview(bathroomId: String, userId: String, rating: Double, comment: String) async throws {
-        print("Starting to add review to Firestore...")
+    func addReview(bathroomId: String, rating: Double, comment: String, image: UIImage?) async throws {
+        guard let userId = Auth.auth().currentUser?.uid,
+              let userEmail = Auth.auth().currentUser?.email else {
+            throw NSError(domain: "ReviewError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
 
+        var imageURL: String? = nil
+
+        // Upload image if provided
+        if let image = image {
+            guard let imageData = image.jpegData(compressionQuality: 0.5) else {
+                throw NSError(domain: "ImageProcessingError", code: -1,
+                             userInfo: [NSLocalizedDescriptionKey: "Failed to process image"])
+            }
+
+            let storageRef = Storage.storage().reference()
+            let imageRef = storageRef.child("reviews/\(UUID().uuidString).jpg")
+
+            _ = try await imageRef.putData(imageData, metadata: nil)
+            imageURL = try await imageRef.downloadURL().absoluteString
+        }
+
+        // Create review data
         let reviewData: [String: Any] = [
             "bathroomId": bathroomId,
             "userId": userId,
+            "userEmail": userEmail,
             "rating": rating,
             "comment": comment,
-            "createdAt": Timestamp()
+            "createdAt": Timestamp(),
+            "imageURL": imageURL
         ]
 
-        // Add review
-        let reviewRef = db.collection("reviews").document()
-        try await reviewRef.setData(reviewData)
-        print("Review added with ID: \(reviewRef.documentID)")
+        // Add review to Firestore
+        try await db.collection("reviews").document().setData(reviewData)
 
-        // Get all reviews and calculate new average
-        let reviewsSnapshot = try await db.collection("reviews")
-            .whereField("bathroomId", isEqualTo: bathroomId)
-            .getDocuments()
-
-        let reviews = reviewsSnapshot.documents.map { document -> Double in
-            let data = document.data()
-            return data["rating"] as? Double ?? 0.0
-        }
-
-        let totalReviews = reviews.count
-        let averageRating = reviews.isEmpty ? 0.0 : reviews.reduce(0.0, +) / Double(totalReviews)
-
-        print("Calculated new average: \(averageRating) from \(totalReviews) reviews")
-
-        // Update bathroom
-        let bathroomRef = db.collection("bathrooms").document(bathroomId)
-        try await bathroomRef.updateData([
-            "averageRating": averageRating,
-            "totalReviews": totalReviews
-        ])
-
-        print("Updated bathroom stats successfully")
+        // Update bathroom stats
+        try await updateBathroomStats(bathroomId: bathroomId, newRating: rating)
     }
 
     func getReviews(forBathroomID bathroomId: String) async throws -> [Review] {
@@ -174,9 +176,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                imageURL: data["imageURL"] as? String
             )
         }
     }
@@ -246,9 +250,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                imageURL: data["imageURL"] as? String
             )
         }
     }
@@ -308,9 +314,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                imageURL: data["imageURL"] as? String
             )
         }
     }
@@ -395,5 +403,27 @@ class FirestoreManager: ObservableObject {
 
         // Compress the image
         return processedImage.jpegData(compressionQuality: 0.5)
+    }
+
+    private func updateBathroomStats(bathroomId: String, newRating: Double) async throws {
+        // Get all reviews for this bathroom
+        let snapshot = try await db.collection("reviews")
+            .whereField("bathroomId", isEqualTo: bathroomId)
+            .getDocuments()
+
+        // Calculate new stats
+        let reviews = snapshot.documents
+        let totalReviews = reviews.count
+        let sumRatings = reviews.reduce(0.0) { sum, document in
+            sum + (document.data()["rating"] as? Double ?? 0.0)
+        }
+        let averageRating = sumRatings / Double(totalReviews)
+
+        // Update bathroom document
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+        try await bathroomRef.updateData([
+            "averageRating": averageRating,
+            "totalReviews": totalReviews
+        ])
     }
 }

@@ -19,6 +19,7 @@ struct BathroomDetailView: View {
     @State private var showingUsageAlert = false
     @State private var showImagePicker = false
     @State private var selectedImage: UIImage?
+    @State private var isFavorite: Bool = false
 
     private func loadBathroomData() async {
         do {
@@ -100,23 +101,38 @@ struct BathroomDetailView: View {
                 .shadow(radius: 2)
 
                 // Log Visit Button
-                Button {
-                    Task {
-                        await logVisit()
+                HStack {
+                    Button {
+                        Task {
+                            await logVisit()
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Log Visit")
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.2))
+                        .foregroundColor(.green)
+                        .cornerRadius(10)
                     }
-                } label: {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                        Text("Log Visit")
+                    .disabled(!isAuthenticated)
 
+                    // Favorite Button
+                    Button {
+                        toggleFavorite()
+                    } label: {
+                        Image(systemName: isFavorite ? "heart.fill" : "heart")
+                            .font(.title2)
+                            .foregroundColor(isFavorite ? .red : .gray)
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .clipShape(Circle())
+                            .shadow(radius: 2)
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green.opacity(0.2))
-                    .foregroundColor(.green)
-                    .cornerRadius(10)
+                    .disabled(!isAuthenticated)
                 }
-                .disabled(!isAuthenticated)
 
                 // Review Input Section
                 VStack(alignment: .leading, spacing: 16) {
@@ -215,6 +231,7 @@ struct BathroomDetailView: View {
             await loadReviews()
             if isAuthenticated {
                 await loadUserUsageCount()
+                await loadFavoriteStatus()
             }
         }
         .sheet(isPresented: $showImagePicker) {
@@ -280,39 +297,75 @@ struct BathroomDetailView: View {
     }
 
     private func logVisit() async {
-        do {
-            try await FirestoreManager.shared.incrementUsageCount(
-                bathroomId: bathroomID,
-                userId: userEmail
-            )
+        Task {
+            do {
+                try await FirestoreManager.shared.logBathroomVisit(bathroomId: bathroom?.id ?? "")
 
-            // Immediately update the UI
-            await MainActor.run {
-                usageCount += 1
-                if let currentBathroom = bathroom {
-                    let updatedBathroom = FirestoreManager.Bathroom(
-                        id: currentBathroom.id,
-                        name: currentBathroom.name,
-                        buildingName: currentBathroom.buildingName,
-                        floor: currentBathroom.floor,
-                        location: currentBathroom.location,
-                        averageRating: currentBathroom.averageRating,
-                        totalReviews: currentBathroom.totalReviews,
-                        gender: currentBathroom.gender,
-                        createdAt: currentBathroom.createdAt,
-                        totalUses: currentBathroom.totalUses + 1,
-                        imageURL: currentBathroom.imageURL
-                    )
-                    bathroom = updatedBathroom
+                // Optimistically update both counts immediately
+                await MainActor.run {
+                    // Update personal usage count
+                    usageCount += 1
+
+                    // Create new bathroom instance with incremented total uses
+                    if let currentBathroom = bathroom {
+                        bathroom = FirestoreManager.Bathroom(
+                            id: currentBathroom.id,
+                            name: currentBathroom.name,
+                            buildingName: currentBathroom.buildingName,
+                            floor: currentBathroom.floor,
+                            location: currentBathroom.location,
+                            averageRating: currentBathroom.averageRating,
+                            totalReviews: currentBathroom.totalReviews,
+                            gender: currentBathroom.gender,
+                            createdAt: currentBathroom.createdAt,
+                            totalUses: currentBathroom.totalUses + 1,  // Increment total uses
+                            imageURL: currentBathroom.imageURL
+                        )
+                    }
+                    showingUsageAlert = true
                 }
-                showingUsageAlert = true
+            } catch {
+                print("Error logging visit: \(error)")
+                // Revert optimistic updates if the operation fails
+                await MainActor.run {
+                    usageCount -= 1
+                    if let currentBathroom = bathroom {
+                        bathroom = FirestoreManager.Bathroom(
+                            id: currentBathroom.id,
+                            name: currentBathroom.name,
+                            buildingName: currentBathroom.buildingName,
+                            floor: currentBathroom.floor,
+                            location: currentBathroom.location,
+                            averageRating: currentBathroom.averageRating,
+                            totalReviews: currentBathroom.totalReviews,
+                            gender: currentBathroom.gender,
+                            createdAt: currentBathroom.createdAt,
+                            totalUses: currentBathroom.totalUses - 1,
+                            imageURL: currentBathroom.imageURL
+                        )
+                    }
+                }
             }
+        }
+    }
 
-            // Refresh the actual data
-            await loadBathroomData()
-            await loadUserUsageCount()
+    private func loadFavoriteStatus() async {
+        guard isAuthenticated else { return }
+        do {
+            isFavorite = try await FirestoreManager.shared.isBathroomFavorited(bathroomId: bathroomID)
         } catch {
-            print("Error logging visit: \(error)")
+            print("Error loading favorite status: \(error)")
+        }
+    }
+
+    private func toggleFavorite() {
+        Task {
+            do {
+                try await FirestoreManager.shared.toggleFavorite(bathroomId: bathroomID)
+                isFavorite.toggle()
+            } catch {
+                print("Error toggling favorite: \(error)")
+            }
         }
     }
 }

@@ -12,95 +12,104 @@ struct ProfilePageView: View {
     @Binding var userFullName: String
     @Binding var userEmail: String
     @Binding var isAuthenticated: Bool
+    @State private var selectedTab: ProfileTab = .reviews
     @State private var userReviews: [FirestoreManager.Review] = []
+    @State private var favoriteBathrooms: [FirestoreManager.Bathroom] = []
     @State private var totalUses: Int = 0
-    @State private var showSignOutAlert = false
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Profile Header
-                    VStack(spacing: 12) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.blue)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Profile Header with Avatar
+                VStack(spacing: 16) {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 100, height: 100)
+                        .overlay(
+                            Text(userFullName.prefix(1).uppercased())
+                                .font(.system(size: 40, weight: .bold))
+                                .foregroundColor(.blue)
+                        )
 
+                    VStack(spacing: 4) {
                         Text(userFullName)
                             .font(.title2)
                             .bold()
-
                         Text(userEmail)
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }
-                    .padding()
+                }
+                .padding(.top, 20)
 
-                    // Usage Statistics
-                    HStack {
-                        VStack {
-                            Text("\(totalUses)")
-                                .font(.title)
-                                .bold()
-                            Text("Total Visits")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .shadow(radius: 2)
+                // Stats Cards - now just showing Total Uses and Reviews
+                HStack(spacing: 15) {
+                    StatCard(title: "Total Uses", value: "\(totalUses)", icon: "person.fill")
+                    StatCard(title: "Reviews", value: "\(userReviews.count)", icon: "star.fill")
+                }
+                .padding(.horizontal)
+
+                // Segmented Control with custom styling
+                Picker("Select Tab", selection: $selectedTab) {
+                    ForEach(ProfileTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue.capitalized)
                     }
-                    .padding(.horizontal)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
 
-                    // Reviews Section
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("My Reviews")
-                            .font(.title2)
-                            .bold()
-                            .padding(.horizontal)
-
+                // Content Section
+                LazyVStack(spacing: 16) {
+                    if selectedTab == .reviews {
                         if userReviews.isEmpty {
-                            Text("No reviews yet")
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
+                            EmptyStateView(
+                                icon: "star.slash",
+                                message: "No reviews yet",
+                                subtitle: "Your reviews will appear here"
+                            )
                         } else {
                             ForEach(userReviews) { review in
                                 ReviewCard(review: review)
-                                    .padding(.horizontal)
+                                    .transition(.opacity)
+                            }
+                        }
+                    } else {
+                        if favoriteBathrooms.isEmpty {
+                            EmptyStateView(
+                                icon: "heart.slash",
+                                message: "No favorites yet",
+                                subtitle: "Your favorite bathrooms will appear here"
+                            )
+                        } else {
+                            ForEach(favoriteBathrooms) { bathroom in
+                                NavigationLink(destination: BathroomDetailView(
+                                    bathroomID: bathroom.id,
+                                    location: bathroom.name,
+                                    gender: bathroom.gender
+                                )) {
+                                    FavoriteBathroomCard(bathroom: bathroom)
+                                        .transition(.opacity)
+                                }
                             }
                         }
                     }
                 }
+                .padding(.horizontal)
+                .animation(.easeInOut, value: selectedTab)
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Profile")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showSignOutAlert = true
-                    } label: {
-                        Text("Sign Out")
-                            .foregroundColor(.red)
-                    }
-                }
-            }
-            .alert("Sign Out", isPresented: $showSignOutAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Sign Out", role: .destructive) {
-                    signOut()
-                }
-            } message: {
-                Text("Are you sure you want to sign out?")
-            }
-            .task {
-                await loadUserReviews()
-                if !userEmail.isEmpty {
-                    await loadTotalUses()
-                }
-            }
+        }
+        .task {
+            await loadUserReviews()
+            await loadTotalUses()
+            await loadFavoriteBathrooms()
+        }
+    }
+
+    private func loadFavoriteBathrooms() async {
+        do {
+            favoriteBathrooms = try await FirestoreManager.shared.getFavoriteBathrooms()
+        } catch {
+            print("Error loading favorite bathrooms: \(error)")
         }
     }
 
@@ -122,14 +131,108 @@ struct ProfilePageView: View {
             print("Error loading total uses: \(error)")
         }
     }
+}
 
-    func signOut() {
-        userFullName = ""
-        userEmail = ""
-        isAuthenticated = false
-        UserDefaults.standard.removeObject(forKey: "userFullName")
-        UserDefaults.standard.removeObject(forKey: "userEmail")
-        UserDefaults.standard.removeObject(forKey: "isAuthenticated")
+enum ProfileTab: String, CaseIterable {
+    case reviews, favorites
+}
+
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(.blue)
+
+            Text(value)
+                .font(.title2)
+                .bold()
+
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        )
+    }
+}
+
+struct EmptyStateView: View {
+    let icon: String
+    let message: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(.gray)
+
+            Text(message)
+                .font(.headline)
+
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+}
+
+struct FavoriteBathroomCard: View {
+    let bathroom: FirestoreManager.Bathroom
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bathroom.name)
+                        .font(.headline)
+                    Text(bathroom.buildingName)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(spacing: 4) {
+                        RatingStars(rating: bathroom.averageRating)
+                        Text(String(format: "%.1f", bathroom.averageRating))
+                            .bold()
+                    }
+                    Text("\(bathroom.totalUses) visits")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Label("Floor \(bathroom.floor)", systemImage: "stairs")
+                Text("•")
+                Label(bathroom.gender, systemImage: "person.fill")
+            }
+            .font(.caption)
+            .foregroundColor(.gray)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        )
+        .padding(.horizontal, 2)
     }
 }
 
@@ -137,45 +240,39 @@ struct ReviewCard: View {
     let review: FirestoreManager.Review
     @State private var bathroomName: String = ""
 
-    var formattedDate: String {
-        let date = review.createdAt.dateValue()
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Bathroom Name and Date
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
-                if !bathroomName.isEmpty {
+                VStack(alignment: .leading) {
                     Text(bathroomName)
                         .font(.headline)
+                    Text(review.userEmail)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
+
                 Spacer()
-                Text(formattedDate)
-                    .font(.caption)
-                    .foregroundColor(.gray)
+
+                RatingStars(rating: review.rating)
             }
 
-            // Rating Stars
-            HStack(spacing: 4) {
-                ForEach(1...5, id: \.self) { index in
-                    Image(systemName: index <= Int(review.rating) ? "star.fill" : "star")
-                        .foregroundColor(.yellow)
-                        .font(.system(size: 14))
-                }
-                Text(String(format: "%.1f", review.rating))
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-
-            // Review Text (if not empty)
             if !review.comment.isEmpty {
                 Text(review.comment)
                     .font(.body)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let imageURL = review.imageURL,
+               let url = URL(string: imageURL) {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .cornerRadius(10)
+                } placeholder: {
+                    ProgressView()
+                }
             }
         }
         .padding()
@@ -198,5 +295,5 @@ struct ReviewCard: View {
 }
 
 #Preview {
-    ProfilePageView(userFullName: .constant("Test User"), userEmail: .constant("test@example.com"), isAuthenticated: .constant(true))
+    ProfilePageView(userFullName: .constant("User Name"), userEmail: .constant("user@example.com"), isAuthenticated: .constant(true))
 }

@@ -426,4 +426,82 @@ class FirestoreManager: ObservableObject {
             "totalReviews": totalReviews
         ])
     }
+
+    func logBathroomVisit(bathroomId: String) async throws {
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+
+        try await db.runTransaction { transaction, errorPointer in
+            let bathroomDoc: DocumentSnapshot
+            do {
+                bathroomDoc = try transaction.getDocument(bathroomRef)
+            } catch let fetchError as NSError {
+                errorPointer?.pointee = fetchError
+                return nil
+            }
+
+            guard let currentTotalUses = bathroomDoc.data()?["totalUses"] as? Int else {
+                let error = NSError(
+                    domain: "FirestoreManager",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve total uses from snapshot \(bathroomDoc)"]
+                )
+                errorPointer?.pointee = error
+                return nil
+            }
+
+            transaction.updateData(["totalUses": currentTotalUses + 1], forDocument: bathroomRef)
+            return nil
+        }
+    }
+
+    func toggleFavorite(bathroomId: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FavoriteError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+
+        let favoriteRef = db.collection("favorites").document("\(userId)_\(bathroomId)")
+        let docSnapshot = try await favoriteRef.getDocument()
+
+        if docSnapshot.exists {
+            // Remove favorite
+            try await favoriteRef.delete()
+        } else {
+            // Add favorite
+            try await favoriteRef.setData([
+                "userId": userId,
+                "bathroomId": bathroomId,
+                "createdAt": Timestamp()
+            ])
+        }
+    }
+
+    func isBathroomFavorited(bathroomId: String) async throws -> Bool {
+        guard let userId = Auth.auth().currentUser?.uid else { return false }
+
+        let docSnapshot = try await db.collection("favorites")
+            .document("\(userId)_\(bathroomId)")
+            .getDocument()
+
+        return docSnapshot.exists
+    }
+
+    func getFavoriteBathrooms() async throws -> [Bathroom] {
+        guard let userId = Auth.auth().currentUser?.uid else { return [] }
+
+        let snapshot = try await db.collection("favorites")
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments()
+
+        let bathroomIds = snapshot.documents.map { $0.data()["bathroomId"] as? String ?? "" }
+
+        var favoriteBathrooms: [Bathroom] = []
+        for id in bathroomIds {
+            if let bathroom = try? await getBathroom(id: id) {
+                favoriteBathrooms.append(bathroom)
+            }
+        }
+
+        return favoriteBathrooms
+    }
 }

@@ -520,4 +520,25 @@ class FirestoreManager: ObservableObject {
         let doc = try await db.collection("users").document(userId).getDocument()
         return doc.data()?["isPrivateProfile"] as? Bool ?? false
     }
+
+    func deleteReview(reviewId: String, bathroomId: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "ReviewError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+
+        // Get the review to verify ownership
+        let reviewDoc = try await db.collection("reviews").document(reviewId).getDocument()
+        guard let reviewData = reviewDoc.data(),
+              reviewData["userId"] as? String == userId else {
+            throw NSError(domain: "ReviewError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "Not authorized to delete this review"])
+        }
+
+        // Delete the review
+        try await db.collection("reviews").document(reviewId).delete()
+
+        // Update bathroom stats
+        try await updateBathroomStats(bathroomId: bathroomId, newRating: 0)
+    }
 }

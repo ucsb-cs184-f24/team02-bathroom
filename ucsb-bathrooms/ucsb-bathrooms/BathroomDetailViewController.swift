@@ -227,8 +227,13 @@ struct BathroomDetailView: View {
                             .padding(.horizontal)
 
                         ForEach(reviews) { review in
-                            ReviewCardView(review: review)
-                                .padding(.horizontal)
+                            ReviewCardView(review: review) {
+                                Task {
+                                    await loadReviews()
+                                    await loadBathroomData()
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
                 }
@@ -394,13 +399,11 @@ struct BathroomDetailView: View {
 
 struct ReviewCardView: View {
     let review: FirestoreManager.Review
+    @AppStorage("userEmail") private var userEmail: String = ""
+    var onDelete: () -> Void = {}
 
-    private var displayName: String {
-        if review.isAnonymous {
-            let anonymousId = String(review.userId.prefix(6))
-            return "Anonymous_\(anonymousId)"
-        }
-        return review.userEmail.components(separatedBy: "@").first ?? "User"
+    private var isOwnReview: Bool {
+        return review.userEmail == userEmail
     }
 
     var body: some View {
@@ -408,13 +411,32 @@ struct ReviewCardView: View {
             HStack {
                 Image(systemName: review.isAnonymous ? "person.fill.questionmark" : "person.circle.fill")
                     .foregroundColor(.gray)
-                Text(displayName)
+                Text(review.userEmail.components(separatedBy: "@").first ?? "User")
                     .font(.subheadline)
                     .bold()
                 Spacer()
                 Text(review.createdAt.formatTimestamp())
                     .font(.caption)
                     .foregroundColor(.gray)
+
+                if isOwnReview {
+                    Button(role: .destructive) {
+                        Task {
+                            do {
+                                try await FirestoreManager.shared.deleteReview(
+                                    reviewId: review.id,
+                                    bathroomId: review.bathroomId
+                                )
+                                onDelete()
+                            } catch {
+                                print("Error deleting review: \(error)")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
             }
 
             HStack(spacing: 4) {

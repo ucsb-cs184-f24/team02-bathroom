@@ -7,7 +7,7 @@ struct BathroomDetailView: View {
     @State var gender: String
 
     @State private var reviewText: String = ""
-    @State private var rating: Int = 3
+    @State private var rating: Int? = nil
     @State private var reviews: [FirestoreManager.Review] = []
     @State private var isLoading = false
     @State private var showAlert = false
@@ -126,8 +126,8 @@ struct BathroomDetailView: View {
                     // Star Rating
                     HStack(spacing: 8) {
                         ForEach(1...5, id: \.self) { star in
-                            Image(systemName: star <= rating ? "star.fill" : "star")
-                                .foregroundColor(star <= rating ? .yellow : .gray)
+                            Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
+                                .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
                                 .font(.system(size: 24))
                                 .onTapGesture {
                                     withAnimation {
@@ -174,11 +174,11 @@ struct BathroomDetailView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(reviewText.isEmpty ? Color.gray.opacity(0.5) : Color.blue)
+                        .background(reviewText.isEmpty || rating == nil ? Color.gray.opacity(0.5) : Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                     }
-                    .disabled(reviewText.isEmpty || isLoading)
+                    .disabled(reviewText.isEmpty || rating == nil || isLoading)
                 }
                 .padding()
                 .background(Color(.systemBackground))
@@ -230,14 +230,14 @@ struct BathroomDetailView: View {
             do {
                 try await FirestoreManager.shared.addReview(
                     bathroomId: bathroom?.id ?? "",
-                    rating: Double(rating),
+                    rating: Double(rating ?? 0),
                     comment: reviewText,
                     image: selectedImage
                 )
 
                 await MainActor.run {
                     reviewText = ""
-                    rating = 3
+                    rating = nil
                     selectedImage = nil
                     isLoading = false
                     alertMessage = "Review submitted successfully!"

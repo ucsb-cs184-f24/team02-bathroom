@@ -49,6 +49,7 @@ class FirestoreManager: ObservableObject {
         let comment: String
         let createdAt: Timestamp
         let imageURL: String?
+        let isAnonymous: Bool
     }
 
     struct User: Identifiable {
@@ -120,7 +121,7 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Review Methods
-    func addReview(bathroomId: String, rating: Double, comment: String, image: UIImage?) async throws {
+    func addReview(bathroomId: String, rating: Double, comment: String, image: UIImage?, isAnonymous: Bool = false) async throws {
         guard let userId = Auth.auth().currentUser?.uid,
               let userEmail = Auth.auth().currentUser?.email else {
             throw NSError(domain: "ReviewError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
@@ -150,7 +151,8 @@ class FirestoreManager: ObservableObject {
             "rating": rating,
             "comment": comment,
             "createdAt": Timestamp(),
-            "imageURL": imageURL
+            "imageURL": imageURL,
+            "isAnonymous": isAnonymous
         ]
 
         // Add review to Firestore
@@ -180,7 +182,8 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String
+                imageURL: data["imageURL"] as? String,
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -254,7 +257,8 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String
+                imageURL: data["imageURL"] as? String,
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -318,7 +322,8 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String
+                imageURL: data["imageURL"] as? String,
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -503,5 +508,16 @@ class FirestoreManager: ObservableObject {
         }
 
         return favoriteBathrooms
+    }
+
+    func updateUserPrivacySettings(userId: String, isPrivate: Bool) async throws {
+        try await db.collection("users").document(userId).setData([
+            "isPrivateProfile": isPrivate
+        ], merge: true)
+    }
+
+    func getUserPrivacySettings(userId: String) async throws -> Bool {
+        let doc = try await db.collection("users").document(userId).getDocument()
+        return doc.data()?["isPrivateProfile"] as? Bool ?? false
     }
 }

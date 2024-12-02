@@ -16,86 +16,115 @@ struct ProfilePageView: View {
     @State private var userReviews: [FirestoreManager.Review] = []
     @State private var favoriteBathrooms: [FirestoreManager.Bathroom] = []
     @State private var totalUses: Int = 0
+    @State private var isPrivateProfile: Bool = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Profile Header with Avatar
-                VStack(spacing: 16) {
-                    Circle()
-                        .fill(Color.blue.opacity(0.1))
-                        .frame(width: 100, height: 100)
-                        .overlay(
-                            Text(userFullName.prefix(1).uppercased())
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.blue)
-                        )
-
-                    VStack(spacing: 4) {
-                        Text(userFullName)
-                            .font(.title2)
-                            .bold()
-                        Text(userEmail)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.top, 20)
-
-                // Stats Cards - now just showing Total Uses and Reviews
-                HStack(spacing: 15) {
-                    StatCard(title: "Total Uses", value: "\(totalUses)", icon: "person.fill")
-                    StatCard(title: "Reviews", value: "\(userReviews.count)", icon: "star.fill")
-                }
-                .padding(.horizontal)
-
-                // Segmented Control with custom styling
-                Picker("Select Tab", selection: $selectedTab) {
-                    ForEach(ProfileTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue.capitalized)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-
-                // Content Section
-                LazyVStack(spacing: 16) {
-                    if selectedTab == .reviews {
-                        if userReviews.isEmpty {
-                            EmptyStateView(
-                                icon: "star.slash",
-                                message: "No reviews yet",
-                                subtitle: "Your reviews will appear here"
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Profile Header with Avatar
+                    VStack(spacing: 16) {
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                            .frame(width: 100, height: 100)
+                            .overlay(
+                                Text(userFullName.prefix(1).uppercased())
+                                    .font(.system(size: 40, weight: .bold))
+                                    .foregroundColor(.blue)
                             )
-                        } else {
-                            ForEach(userReviews) { review in
-                                ReviewCard(review: review)
-                                    .transition(.opacity)
+
+                        VStack(spacing: 4) {
+                            Text(userFullName)
+                                .font(.title2)
+                                .bold()
+                            Text(userEmail)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    Toggle("Private Profile", isOn: $isPrivateProfile)
+                        .onChange(of: isPrivateProfile) { newValue in
+                            Task {
+                                do {
+                                    try await FirestoreManager.shared.updateUserPrivacySettings(
+                                        userId: userEmail,
+                                        isPrivate: newValue
+                                    )
+                                } catch {
+                                    print("Error updating privacy settings: \(error)")
+                                }
                             }
                         }
-                    } else {
-                        if favoriteBathrooms.isEmpty {
-                            EmptyStateView(
-                                icon: "heart.slash",
-                                message: "No favorites yet",
-                                subtitle: "Your favorite bathrooms will appear here"
-                            )
-                        } else {
-                            ForEach(favoriteBathrooms) { bathroom in
-                                NavigationLink(destination: BathroomDetailView(
-                                    bathroomID: bathroom.id,
-                                    location: bathroom.name,
-                                    gender: bathroom.gender
-                                )) {
-                                    FavoriteBathroomCard(bathroom: bathroom)
+                        .padding(.horizontal)
+
+                    // Stats Cards - now just showing Total Uses and Reviews
+                    HStack(spacing: 15) {
+                        StatCard(title: "Total Uses", value: "\(totalUses)", icon: "person.fill")
+                        StatCard(title: "Reviews", value: "\(userReviews.count)", icon: "star.fill")
+                    }
+                    .padding(.horizontal)
+
+                    // Segmented Control with custom styling
+                    Picker("Select Tab", selection: $selectedTab) {
+                        ForEach(ProfileTab.allCases, id: \.self) { tab in
+                            Text(tab.rawValue.capitalized)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
+
+                    // Content Section
+                    LazyVStack(spacing: 16) {
+                        if selectedTab == .reviews {
+                            if userReviews.isEmpty {
+                                EmptyStateView(
+                                    icon: "star.slash",
+                                    message: "No reviews yet",
+                                    subtitle: "Your reviews will appear here"
+                                )
+                            } else {
+                                ForEach(userReviews) { review in
+                                    ReviewCard(review: review)
                                         .transition(.opacity)
+                                }
+                            }
+                        } else {
+                            if favoriteBathrooms.isEmpty {
+                                EmptyStateView(
+                                    icon: "heart.slash",
+                                    message: "No favorites yet",
+                                    subtitle: "Your favorite bathrooms will appear here"
+                                )
+                            } else {
+                                ForEach(favoriteBathrooms) { bathroom in
+                                    NavigationLink(destination: BathroomDetailView(
+                                        bathroomID: bathroom.id,
+                                        location: bathroom.name,
+                                        gender: bathroom.gender
+                                    )) {
+                                        FavoriteBathroomCard(bathroom: bathroom)
+                                            .transition(.opacity)
+                                    }
                                 }
                             }
                         }
                     }
+                    .padding(.horizontal)
+                    .animation(.easeInOut, value: selectedTab)
                 }
-                .padding(.horizontal)
-                .animation(.easeInOut, value: selectedTab)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        signOut()
+                    } label: {
+                        Text("Sign Out")
+                            .foregroundColor(.red)
+                    }
+                }
             }
         }
         .task {
@@ -130,6 +159,15 @@ struct ProfilePageView: View {
         } catch {
             print("Error loading total uses: \(error)")
         }
+    }
+
+    private func signOut() {
+        userFullName = ""
+        userEmail = ""
+        isAuthenticated = false
+        UserDefaults.standard.removeObject(forKey: "userFullName")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "isAuthenticated")
     }
 }
 
@@ -240,13 +278,21 @@ struct ReviewCard: View {
     let review: FirestoreManager.Review
     @State private var bathroomName: String = ""
 
+    private var displayName: String {
+        if review.isAnonymous {
+            let anonymousId = String(review.userId.prefix(6))
+            return "Anonymous_\(anonymousId)"
+        }
+        return review.userEmail.components(separatedBy: "@").first ?? "User"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading) {
                     Text(bathroomName)
                         .font(.headline)
-                    Text(review.userEmail)
+                    Text(displayName)
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }

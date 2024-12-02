@@ -20,6 +20,8 @@ struct BathroomDetailView: View {
     @State private var showImagePicker = false
     @State private var selectedImage: UIImage?
     @State private var isFavorite: Bool = false
+    @State private var isAnonymous: Bool = false
+    @State private var isPrivateProfile: Bool = false
 
     private func loadBathroomData() async {
         do {
@@ -32,6 +34,14 @@ struct BathroomDetailView: View {
         } catch {
             print("Error loading bathroom: \(error)")
         }
+    }
+
+    private func formatTimestamp(_ timestamp: Timestamp) -> String {
+        let date = timestamp.dateValue()
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
     var body: some View {
@@ -153,9 +163,17 @@ struct BathroomDetailView: View {
                         }
                     }
 
-                    TextField("Share your experience...", text: $reviewText, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(4, reservesSpace: true)
+                    TextEditor(text: $reviewText)
+                        .frame(height: 100)
+                        .padding(8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+
+                    Toggle("Post Anonymously", isOn: $isAnonymous)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal)
 
                     Button(action: { showImagePicker = true }) {
                         HStack {
@@ -245,11 +263,15 @@ struct BathroomDetailView: View {
 
         Task {
             do {
+                // Use either user's profile setting or the toggle setting
+                let shouldBeAnonymous = isPrivateProfile || isAnonymous
+
                 try await FirestoreManager.shared.addReview(
                     bathroomId: bathroom?.id ?? "",
                     rating: Double(rating ?? 0),
                     comment: reviewText,
-                    image: selectedImage
+                    image: selectedImage,
+                    isAnonymous: shouldBeAnonymous
                 )
 
                 await MainActor.run {
@@ -373,23 +395,24 @@ struct BathroomDetailView: View {
 struct ReviewCardView: View {
     let review: FirestoreManager.Review
 
-    private func formatDate(_ timestamp: Timestamp) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: timestamp.dateValue())
+    private var displayName: String {
+        if review.isAnonymous {
+            let anonymousId = String(review.userId.prefix(6))
+            return "Anonymous_\(anonymousId)"
+        }
+        return review.userEmail.components(separatedBy: "@").first ?? "User"
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "person.circle.fill")
+                Image(systemName: review.isAnonymous ? "person.fill.questionmark" : "person.circle.fill")
                     .foregroundColor(.gray)
-                Text(review.userId.components(separatedBy: "@").first ?? "User")
+                Text(displayName)
                     .font(.subheadline)
                     .bold()
                 Spacer()
-                Text(formatDate(review.createdAt))
+                Text(review.createdAt.formatTimestamp())
                     .font(.caption)
                     .foregroundColor(.gray)
             }

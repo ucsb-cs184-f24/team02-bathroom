@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseFirestore
+import MapKit
 
 struct BathroomDetailView: View {
     let bathroomID: String
@@ -21,6 +22,7 @@ struct BathroomDetailView: View {
     @State private var isAnonymous: Bool = false
     @State private var isPrivateProfile: Bool = false
     @FocusState private var isTextEditorFocused: Bool
+    @State private var isPressed = false
 
     private func loadBathroomData() async {
         do {
@@ -43,15 +45,54 @@ struct BathroomDetailView: View {
         return formatter.string(from: date)
     }
 
+    private func openInMaps() {
+        guard let bathroom = bathroom else { return }
+
+        let coordinate = CLLocationCoordinate2D(
+            latitude: bathroom.location.latitude,
+            longitude: bathroom.location.longitude
+        )
+
+        let placemark = MKPlacemark(coordinate: coordinate)
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = bathroom.name
+
+        mapItem.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+        ])
+    }
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                // Bathroom Info Section
+            VStack(spacing: 24) {
+                // Header Section with Favorite Button
                 if let bathroom = bathroom {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(location)
-                            .font(.title2)
-                            .bold()
+                        // Title and Favorite
+                        HStack {
+                            Text(location)
+                                .font(.title2)
+                                .bold()
+
+                            Spacer()
+
+                            // Directions and Favorite
+                            HStack(spacing: 16) {
+                                Button(action: openInMaps) {
+                                    Image(systemName: "map.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.green)
+                                }
+
+                                Button(action: {
+                                    Task { await toggleFavorite() }
+                                }) {
+                                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                                        .font(.title3)
+                                        .foregroundColor(isFavorite ? .red : .gray)
+                                }
+                            }
+                        }
 
                         VStack(spacing: 12) {
                             // Rating Stats
@@ -101,38 +142,24 @@ struct BathroomDetailView: View {
                                 }
                             }
 
-                            HStack(spacing: 16) {
-                                // Visit Log Button
-                                Button(action: {
-                                    Task {
-                                        await logVisit()
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                        Text("Log Visit")
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(20)
-                                }
+                            Divider()
 
-                                // Favorite Button
-                                Button(action: toggleFavorite) {
-                                    HStack {
-                                        Image(systemName: isFavorite ? "heart.fill" : "heart")
-                                        Text(isFavorite ? "Favorited" : "Favorite")
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(isFavorite ? Color.red : Color.gray)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(20)
+                            // Log Visit Button
+                            Button(action: {
+                                Task { await logVisit() }
+                            }) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.title3)
+                                    Text("Log Visit")
+                                        .font(.headline)
                                 }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                             }
-                            .padding(.vertical, 8)
                         }
                     }
                     .padding()
@@ -142,24 +169,36 @@ struct BathroomDetailView: View {
                     .padding(.horizontal)
                 }
 
-                // Review Form
-                if isAuthenticated {
-                    ReviewSection(
-                        rating: $rating,
-                        reviewText: $reviewText,
-                        onSubmit: {
-                            await submitReview()
-                        }
-                    )
-                }
+                // Reviews Section
+                VStack(alignment: .leading, spacing: 16) {
+                    // Reviews Header
+                    HStack {
+                        Text("Reviews")
+                            .font(.title3)
+                            .bold()
+                        Spacer()
+                        Text("\(reviews.count) total")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.horizontal)
 
-                // Reviews List
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    ForEach(reviews) { review in
-                        ReviewCardView(review: review) {
-                            Task {
-                                await loadReviews()
-                                await loadBathroomData()
+                    // Write Review Section
+                    ReviewSection(rating: $rating, reviewText: $reviewText, isAnonymous: $isAnonymous) {
+                        await submitReview()
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+
+                    // Reviews List
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        ForEach(reviews) { review in
+                            ReviewCardView(review: review) {
+                                Task {
+                                    await loadReviews()
+                                    await loadBathroomData()
+                                }
                             }
                         }
                     }
@@ -416,6 +455,7 @@ struct ReviewCardView: View {
 struct ReviewSection: View {
     @Binding var rating: Int?
     @Binding var reviewText: String
+    @Binding var isAnonymous: Bool
     @State private var isSubmitting = false
     let onSubmit: () async -> Void
 
@@ -424,7 +464,7 @@ struct ReviewSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Write a Review")
                 .font(.headline)
 
@@ -432,6 +472,7 @@ struct ReviewSection: View {
             HStack {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
+                        .font(.system(size: 24))
                         .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
                         .onTapGesture {
                             rating = star
@@ -442,41 +483,42 @@ struct ReviewSection: View {
             // Review Text
             TextEditor(text: $reviewText)
                 .frame(height: 100)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.2))
-                )
-                .onAppear {
-                    UITextView.appearance().backgroundColor = .clear
-                }
-                .onDisappear {
-                    UITextView.appearance().backgroundColor = nil
-                }
+                .padding(8)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+
+            // Anonymous Toggle
+            Toggle("Post Anonymously", isOn: $isAnonymous)
+                .font(.subheadline)
+                .foregroundColor(.gray)
 
             // Submit Button
             Button(action: {
                 isSubmitting = true
-                // Handle async submission
                 Task {
                     await onSubmit()
                     isSubmitting = false
                 }
             }) {
-                if isSubmitting {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else {
-                    Text("Submit Review")
-                        .frame(maxWidth: .infinity)
+                HStack {
+                    if isSubmitting {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Submit Review")
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isValidReview ? Color.blue : Color.gray.opacity(0.5))
+                .foregroundColor(.white)
+                .cornerRadius(10)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(isValidReview ? Color.blue : Color.gray)
-            .foregroundColor(.white)
-            .cornerRadius(10)
             .disabled(!isValidReview || isSubmitting)
         }
         .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }

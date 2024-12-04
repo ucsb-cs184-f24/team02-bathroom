@@ -17,11 +17,10 @@ struct BathroomDetailView: View {
     @AppStorage("isAuthenticated") private var isAuthenticated: Bool = false
     @State private var usageCount: Int = 0
     @State private var showingUsageAlert = false
-    @State private var showImagePicker = false
-    @State private var selectedImage: UIImage?
     @State private var isFavorite: Bool = false
     @State private var isAnonymous: Bool = false
     @State private var isPrivateProfile: Bool = false
+    @FocusState private var isTextEditorFocused: Bool
 
     private func loadBathroomData() async {
         do {
@@ -46,14 +45,14 @@ struct BathroomDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header Section with Stats
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(location)
-                        .font(.title2)
-                        .bold()
+            VStack(spacing: 20) {
+                // Bathroom Info Section
+                if let bathroom = bathroom {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(location)
+                            .font(.title2)
+                            .bold()
 
-                    if let bathroom = bathroom {
                         VStack(spacing: 12) {
                             // Rating Stats
                             HStack(spacing: 16) {
@@ -103,199 +102,146 @@ struct BathroomDetailView: View {
                             }
                         }
                     }
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(.systemBackground))
-                .cornerRadius(15)
-                .shadow(radius: 2)
-
-                // Log Visit Button
-                HStack {
-                    Button {
-                        Task {
-                            await logVisit()
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Log Visit")
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green.opacity(0.2))
-                        .foregroundColor(.green)
-                        .cornerRadius(10)
-                    }
-                    .disabled(!isAuthenticated)
-
-                    // Favorite Button
-                    Button {
-                        toggleFavorite()
-                    } label: {
-                        Image(systemName: isFavorite ? "heart.fill" : "heart")
-                            .font(.title2)
-                            .foregroundColor(isFavorite ? .red : .gray)
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .clipShape(Circle())
-                            .shadow(radius: 2)
-                    }
-                    .disabled(!isAuthenticated)
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .shadow(radius: 2)
+                    .padding(.horizontal)
                 }
 
-                // Review Input Section
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Write a Review")
-                        .font(.headline)
+                // Review Form
+                if isAuthenticated {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Write a Review")
+                            .font(.headline)
 
-                    // Star Rating
-                    HStack(spacing: 8) {
-                        ForEach(1...5, id: \.self) { star in
-                            Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
-                                .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
-                                .font(.system(size: 24))
-                                .onTapGesture {
-                                    withAnimation {
-                                        rating = star
+                        // Rating Stars
+                        HStack(spacing: 8) {
+                            ForEach(1...5, id: \.self) { star in
+                                Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
+                                    .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
+                                    .font(.system(size: 24))
+                                    .onTapGesture {
+                                        withAnimation {
+                                            rating = star
+                                        }
                                     }
-                                }
+                            }
                         }
-                    }
 
-                    TextEditor(text: $reviewText)
-                        .frame(height: 100)
+                        // Review Text
+                        ZStack(alignment: .topLeading) {
+                            if reviewText.isEmpty {
+                                Text("Write your review here...")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                            }
+                            TextEditor(text: $reviewText)
+                                .frame(minHeight: 100)
+                                .focused($isTextEditorFocused)
+                        }
                         .padding(8)
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        .padding(.horizontal)
 
-                    Toggle("Post Anonymously", isOn: $isAnonymous)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .padding(.horizontal)
+                        // Anonymous Toggle
+                        Toggle("Post Anonymously", isOn: $isAnonymous)
 
-                    Button(action: { showImagePicker = true }) {
-                        HStack {
-                            Image(systemName: "photo")
-                            Text(selectedImage == nil ? "Add Photo" : "Change Photo")
-                        }
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 200)
-                            .cornerRadius(10)
-                    }
-
-                    Button {
-                        Task {
-                            await submitReview()
-                        }
-                    } label: {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .tint(.white)
+                        // Submit Button
+                        Button {
+                            isTextEditorFocused = false
+                            Task {
+                                await submitReview()
                             }
-                            Text("Submit Review")
-                                .bold()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(reviewText.isEmpty || rating == nil ? Color.gray.opacity(0.5) : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
-                    .disabled(reviewText.isEmpty || rating == nil || isLoading)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(15)
-                .shadow(radius: 2)
-
-                // Reviews Section
-                if !reviews.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Reviews")
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        ForEach(reviews) { review in
-                            ReviewCardView(review: review) {
-                                Task {
-                                    await loadReviews()
-                                    await loadBathroomData()
+                        } label: {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                } else {
+                                    Text("Submit Review")
                                 }
                             }
-                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                        }
+                        .disabled(isLoading || rating == nil || reviewText.isEmpty)
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .shadow(radius: 2)
+                    .padding(.horizontal)
+                }
+
+                // Reviews List
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    ForEach(reviews) { review in
+                        ReviewCardView(review: review) {
+                            Task {
+                                await loadReviews()
+                                await loadBathroomData()
+                            }
                         }
                     }
                 }
+                .padding(.horizontal)
             }
-            .padding()
+            .padding(.vertical)
         }
-        .background(Color(.systemGroupedBackground))
+        .navigationBarTitleDisplayMode(.inline)
         .alert("Review Status", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
-        .alert("Visit Logged!", isPresented: $showingUsageAlert) {
-            Button("OK", role: .cancel) { }
-        }
-        .task {
-            await loadBathroomData()
-            await loadReviews()
-            if isAuthenticated {
+        .onAppear {
+            Task {
+                await loadBathroomData()
+                await loadReviews()
                 await loadUserUsageCount()
                 await loadFavoriteStatus()
             }
         }
-        .sheet(isPresented: $showImagePicker) {
-            ImagePicker(image: $selectedImage)
+        .onChange(of: isTextEditorFocused) { focused in
+            if !focused {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                             to: nil, from: nil, for: nil)
+            }
         }
     }
 
-    private func submitReview() {
+    private func submitReview() async {
         guard !isLoading else { return }
         isLoading = true
 
-        Task {
-            do {
-                // Use either user's profile setting or the toggle setting
-                let shouldBeAnonymous = isPrivateProfile || isAnonymous
+        do {
+            try await FirestoreManager.shared.addReview(
+                bathroomId: bathroom?.id ?? "",
+                rating: Double(rating ?? 0),
+                comment: reviewText,
+                isAnonymous: isAnonymous
+            )
 
-                try await FirestoreManager.shared.addReview(
-                    bathroomId: bathroom?.id ?? "",
-                    rating: Double(rating ?? 0),
-                    comment: reviewText,
-                    image: selectedImage,
-                    isAnonymous: shouldBeAnonymous
-                )
+            await MainActor.run {
+                reviewText = ""
+                rating = nil
+                isLoading = false
+                alertMessage = "Review submitted successfully!"
+                showAlert = true
+            }
 
-                await MainActor.run {
-                    reviewText = ""
-                    rating = nil
-                    selectedImage = nil
-                    isLoading = false
-                    alertMessage = "Review submitted successfully!"
-                    showAlert = true
-                }
-
-                await loadBathroomData()
-                await loadReviews()
-            } catch {
-                await MainActor.run {
-                    isLoading = false
-                    alertMessage = error.localizedDescription
-                    showAlert = true
-                }
+            await loadBathroomData()
+            await loadReviews()
+        } catch {
+            await MainActor.run {
+                isLoading = false
+                alertMessage = error.localizedDescription
+                showAlert = true
             }
         }
     }
@@ -345,8 +291,7 @@ struct BathroomDetailView: View {
                             totalReviews: currentBathroom.totalReviews,
                             gender: currentBathroom.gender,
                             createdAt: currentBathroom.createdAt,
-                            totalUses: currentBathroom.totalUses + 1,  // Increment total uses
-                            imageURL: currentBathroom.imageURL
+                            totalUses: currentBathroom.totalUses + 1  // Increment total uses
                         )
                     }
                     showingUsageAlert = true
@@ -367,8 +312,7 @@ struct BathroomDetailView: View {
                             totalReviews: currentBathroom.totalReviews,
                             gender: currentBathroom.gender,
                             createdAt: currentBathroom.createdAt,
-                            totalUses: currentBathroom.totalUses - 1,
-                            imageURL: currentBathroom.imageURL
+                            totalUses: currentBathroom.totalUses - 1
                         )
                     }
                 }
@@ -400,45 +344,54 @@ struct BathroomDetailView: View {
 struct ReviewCardView: View {
     let review: FirestoreManager.Review
     @AppStorage("userEmail") private var userEmail: String = ""
+    @State private var showDeleteConfirmation = false
     var onDelete: () -> Void = {}
 
     private var isOwnReview: Bool {
         return review.userEmail == userEmail
     }
 
+    private var displayName: String {
+        if review.isAnonymous {
+            return String.randomAnonymousID(seed: review.userId)
+        }
+        return review.userEmail.components(separatedBy: "@").first ?? "User"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Header with delete button
             HStack {
-                Image(systemName: review.isAnonymous ? "person.fill.questionmark" : "person.circle.fill")
-                    .foregroundColor(.gray)
-                Text(review.userEmail.components(separatedBy: "@").first ?? "User")
-                    .font(.subheadline)
-                    .bold()
-                Spacer()
-                Text(review.createdAt.formatTimestamp())
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                // User info
+                HStack {
+                    Image(systemName: review.isAnonymous ? "person.fill.questionmark" : "person.circle.fill")
+                        .foregroundColor(.gray)
+                    Text(displayName)
+                        .font(.subheadline)
+                        .bold()
+                }
 
-                if isOwnReview {
-                    Button(role: .destructive) {
-                        Task {
-                            do {
-                                try await FirestoreManager.shared.deleteReview(
-                                    reviewId: review.id,
-                                    bathroomId: review.bathroomId
-                                )
-                                onDelete()
-                            } catch {
-                                print("Error deleting review: \(error)")
-                            }
+                Spacer()
+
+                // Date and delete button
+                HStack(spacing: 12) {
+                    Text(review.createdAt.formatTimestamp())
+                        .font(.caption)
+                        .foregroundColor(.gray)
+
+                    if isOwnReview {
+                        Button {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash.circle.fill")
+                                .foregroundColor(.red.opacity(0.8))
+                                .font(.system(size: 22))
                         }
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
                     }
                 }
             }
 
+            // Rating
             HStack(spacing: 4) {
                 StarRatingView(rating: review.rating)
                 Text(String(format: "%.1f", review.rating))
@@ -446,26 +399,36 @@ struct ReviewCardView: View {
                     .foregroundColor(.gray)
             }
 
-            Text(review.comment)
-                .font(.body)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let imageURL = review.imageURL,
-               let url = URL(string: imageURL) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 200)
-                        .cornerRadius(10)
-                } placeholder: {
-                    ProgressView()
-                }
+            // Comment
+            if !review.comment.isEmpty {
+                Text(review.comment)
+                    .font(.body)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+
+
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(radius: 2)
+        .alert("Delete Review", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                Task {
+                    do {
+                        try await FirestoreManager.shared.deleteReview(
+                            reviewId: review.id,
+                            bathroomId: review.bathroomId
+                        )
+                        onDelete()
+                    } catch {
+                        print("Error deleting review: \(error)")
+                    }
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete this review? This action cannot be undone.")
+        }
     }
 }

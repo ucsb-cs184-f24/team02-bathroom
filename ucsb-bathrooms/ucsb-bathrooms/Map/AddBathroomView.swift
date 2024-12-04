@@ -13,24 +13,27 @@ struct AddBathroomView: View {
 
     @State private var bathroomName: String = ""
     @State private var buildingName: String = ""
-    @State private var floorText: String = ""
-    @State private var selectedGender: String = "Unisex"
+    @State private var floor: Int = 1
+    @State private var selectedGender: String = "All Gender"
     @State private var location: CLLocationCoordinate2D
     @State private var isLoading = false
     @State private var errorMessage: String = ""
     @State private var showAlert = false
-    @State private var showImagePicker = false
-    @State private var selectedImage: UIImage?
+    @State private var floorText = "1"
 
     @State private var region: MKCoordinateRegion
+    var onBathroomAdded: () -> Void
 
-    init(initialLocation: CLLocationCoordinate2D) {
+    init(initialLocation: CLLocationCoordinate2D, onBathroomAdded: @escaping () -> Void) {
         _location = State(initialValue: initialLocation)
         _region = State(initialValue: MKCoordinateRegion(
             center: initialLocation,
             span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
         ))
+        self.onBathroomAdded = onBathroomAdded
     }
+
+    private let genderOptions = ["All Gender", "Men", "Women"]
 
     var body: some View {
         VStack {
@@ -61,31 +64,21 @@ struct AddBathroomView: View {
                     TextField("Building Name", text: $buildingName)
                     TextField("Floor", text: $floorText)
                         .keyboardType(.numberPad)
+                        .onChange(of: floorText) { newValue in
+                            if let newFloor = Int(newValue) {
+                                floor = newFloor
+                            }
+                        }
                     Picker("Gender", selection: $selectedGender) {
-                        Text("Unisex").tag("Unisex")
-                        Text("Male").tag("Male")
-                        Text("Female").tag("Female")
-                    }
-
-                    // Image Selection
-                    Button(action: { showImagePicker = true }) {
-                        HStack {
-                            Image(systemName: "photo")
-                            Text(selectedImage == nil ? "Add Photo" : "Change Photo")
+                        ForEach(genderOptions, id: \.self) { gender in
+                            Text(gender)
                         }
                     }
 
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 200)
-                            .cornerRadius(10)
-                    }
                 }
 
                 Section {
-                    Button(action: addBathroom) {
+                    Button(action: submitBathroom) {
                         if isLoading {
                             ProgressView()
                         } else {
@@ -108,9 +101,6 @@ struct AddBathroomView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
-            .sheet(isPresented: $showImagePicker) {
-                ImagePicker(image: $selectedImage)
-            }
         }
     }
 
@@ -121,13 +111,9 @@ struct AddBathroomView: View {
         Int(floorText) != nil
     }
 
-    private func addBathroom() {
-        guard let floor = Int(floorText) else {
-            errorMessage = "Please enter a valid floor number."
-            showAlert = true
-            return
-        }
-
+    @MainActor
+    func submitBathroom() {
+        guard !isLoading else { return }
         isLoading = true
 
         Task {
@@ -138,19 +124,15 @@ struct AddBathroomView: View {
                     floor: floor,
                     latitude: location.latitude,
                     longitude: location.longitude,
-                    gender: selectedGender,
-                    image: selectedImage  // Pass the UIImage directly
+                    gender: selectedGender
                 )
-                await MainActor.run {
-                    isLoading = false
-                    presentationMode.wrappedValue.dismiss()
-                }
+                isLoading = false
+                onBathroomAdded()
+                presentationMode.wrappedValue.dismiss()
             } catch {
-                await MainActor.run {
-                    isLoading = false
-                    errorMessage = error.localizedDescription
-                    showAlert = true
-                }
+                isLoading = false
+                errorMessage = error.localizedDescription
+                showAlert = true
             }
         }
     }

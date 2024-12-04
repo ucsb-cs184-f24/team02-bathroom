@@ -33,7 +33,6 @@ class FirestoreManager: ObservableObject {
         let gender: String
         let createdAt: Timestamp
         let totalUses: Int
-        let imageURL: String?
 
         static func == (lhs: Bathroom, rhs: Bathroom) -> Bool {
             return lhs.id == rhs.id
@@ -48,7 +47,6 @@ class FirestoreManager: ObservableObject {
         let rating: Double
         let comment: String
         let createdAt: Timestamp
-        let imageURL: String?
         let isAnonymous: Bool
     }
 
@@ -70,34 +68,22 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Bathroom Methods
-    func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String, image: UIImage?) async throws {
-        var imageURL: String? = nil
-
-        if let image = image {
-            guard let imageData = image.jpegData(compressionQuality: 0.5) else {
-                throw NSError(domain: "ImageProcessingError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to process image"])
-            }
-
-            let storageRef = Storage.storage().reference()
-            let imageRef = storageRef.child("bathrooms/\(UUID().uuidString).jpg")
-
-            _ = try await imageRef.putData(imageData, metadata: nil)
-            imageURL = try await imageRef.downloadURL().absoluteString
-        }
-
+    func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String) async throws {
+        // Create bathroom document
+        let bathroomRef = db.collection("bathrooms").document()
         let bathroomData: [String: Any] = [
             "name": name,
             "buildingName": buildingName,
             "floor": floor,
             "location": GeoPoint(latitude: latitude, longitude: longitude),
+            "gender": gender,
             "averageRating": 0.0,
             "totalReviews": 0,
-            "gender": gender,
             "createdAt": Timestamp(),
-            "imageURL": imageURL
+            "totalUses": 0
         ]
 
-        try await db.collection("bathrooms").document().setData(bathroomData)
+        try await bathroomRef.setData(bathroomData)
     }
 
     func getAllBathrooms() async throws -> [Bathroom] {
@@ -114,34 +100,18 @@ class FirestoreManager: ObservableObject {
                 totalReviews: data["totalReviews"] as? Int ?? 0,
                 gender: data["gender"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                totalUses: data["totalUses"] as? Int ?? 0,
-                imageURL: data["imageURL"] as? String
+                totalUses: data["totalUses"] as? Int ?? 0
             )
         }
     }
 
     // MARK: - Review Methods
-    func addReview(bathroomId: String, rating: Double, comment: String, image: UIImage?, isAnonymous: Bool = false) async throws {
+    func addReview(bathroomId: String, rating: Double, comment: String, isAnonymous: Bool = false) async throws {
         guard let userId = Auth.auth().currentUser?.uid,
               let userEmail = Auth.auth().currentUser?.email else {
             throw NSError(domain: "ReviewError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
 
-        var imageURL: String? = nil
-
-        // Upload image if provided
-        if let image = image {
-            guard let imageData = image.jpegData(compressionQuality: 0.5) else {
-                throw NSError(domain: "ImageProcessingError", code: -1,
-                             userInfo: [NSLocalizedDescriptionKey: "Failed to process image"])
-            }
-
-            let storageRef = Storage.storage().reference()
-            let imageRef = storageRef.child("reviews/\(UUID().uuidString).jpg")
-
-            _ = try await imageRef.putData(imageData, metadata: nil)
-            imageURL = try await imageRef.downloadURL().absoluteString
-        }
 
         // Create review data
         let reviewData: [String: Any] = [
@@ -151,7 +121,6 @@ class FirestoreManager: ObservableObject {
             "rating": rating,
             "comment": comment,
             "createdAt": Timestamp(),
-            "imageURL": imageURL,
             "isAnonymous": isAnonymous
         ]
 
@@ -182,7 +151,6 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String,
                 isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
@@ -257,7 +225,6 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String,
                 isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
@@ -279,8 +246,7 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0,
-            imageURL: data["imageURL"] as? String
+            totalUses: data["totalUses"] as? Int ?? 0
         )
     }
 
@@ -300,15 +266,14 @@ class FirestoreManager: ObservableObject {
             totalReviews: data["totalReviews"] as? Int ?? 0,
             gender: data["gender"] as? String ?? "",
             createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-            totalUses: data["totalUses"] as? Int ?? 0,
-            imageURL: data["imageURL"] as? String
+            totalUses: data["totalUses"] as? Int ?? 0
         )
     }
 
     // Add this new method to get reviews by user ID
-    func getUserReviews(forUserID userID: String) async throws -> [Review] {
+    func getUserReviews(forUserID userId: String) async throws -> [Review] {
         let snapshot = try await db.collection("reviews")
-            .whereField("userId", isEqualTo: userID)
+            .whereField("userId", isEqualTo: userId)
             .order(by: "createdAt", descending: true)
             .getDocuments()
 
@@ -322,7 +287,6 @@ class FirestoreManager: ObservableObject {
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
                 createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
-                imageURL: data["imageURL"] as? String,
                 isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
@@ -387,27 +351,6 @@ class FirestoreManager: ObservableObject {
         return snapshot.documents.reduce(0) { sum, doc in
             sum + (doc.data()["count"] as? Int ?? 0)
         }
-    }
-
-    private func processImage(_ image: UIImage) -> Data? {
-        // Convert to compatible color space
-        let imageRect = CGRect(origin: .zero, size: image.size)
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-        guard let context = CGContext(data: nil,
-                                    width: Int(image.size.width),
-                                    height: Int(image.size.height),
-                                    bitsPerComponent: 8,
-                                    bytesPerRow: 0,
-                                    space: colorSpace,
-                                    bitmapInfo: bitmapInfo.rawValue),
-              let processedImage = context.makeImage().flatMap({ UIImage(cgImage: $0) }) else {
-            return nil
-        }
-
-        // Compress the image
-        return processedImage.jpegData(compressionQuality: 0.5)
     }
 
     private func updateBathroomStats(bathroomId: String, newRating: Double) async throws {

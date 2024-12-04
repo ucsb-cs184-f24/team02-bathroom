@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ProfilePageView: View {
     @Binding var userFullName: String
@@ -144,7 +145,9 @@ struct ProfilePageView: View {
 
     private func loadUserReviews() async {
         do {
-            userReviews = try await FirestoreManager.shared.getUserReviews(forUserID: userEmail)
+            if let userId = Auth.auth().currentUser?.uid {
+                userReviews = try await FirestoreManager.shared.getUserReviews(forUserID: userId)
+            }
         } catch {
             print("Error loading user reviews: \(error)")
         }
@@ -280,8 +283,7 @@ struct ReviewCard: View {
 
     private var displayName: String {
         if review.isAnonymous {
-            let anonymousId = String(review.userId.prefix(6))
-            return "Anonymous_\(anonymousId)"
+            return String.randomAnonymousID(seed: review.userId)
         }
         return review.userEmail.components(separatedBy: "@").first ?? "User"
     }
@@ -308,18 +310,6 @@ struct ReviewCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            if let imageURL = review.imageURL,
-               let url = URL(string: imageURL) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 200)
-                        .cornerRadius(10)
-                } placeholder: {
-                    ProgressView()
-                }
-            }
         }
         .padding()
         .background(Color(.systemBackground))

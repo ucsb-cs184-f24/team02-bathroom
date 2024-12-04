@@ -7,6 +7,8 @@ struct BathroomDetailView: View {
     @State var gender: String
 
     @State private var reviewText: String = ""
+    @State private var rating: Int = 3
+    @State private var cleanlinessRating: Int = 3
     @State private var rating: Int? = nil
     @State private var reviews: [FirestoreManager.Review] = []
     @State private var isLoading = false
@@ -69,7 +71,21 @@ struct BathroomDetailView: View {
                             }
 
                             Divider()
+                            // Cleanliness Rating Display
+                            VStack(alignment: .leading) {
+                                Text("Cleanliness Rating")
+                                    .font(.headline)
 
+                                HStack(spacing: 4) {
+                                    RatingStars(rating: bathroom.cleanlinessRating)
+                                    Text(String(format: "%.1f", bathroom.cleanlinessRating))
+                                        .foregroundColor(.gray)
+                                    Text("(\(bathroom.totalCleanlinessLogs) logs)")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+
+                            Divider()
                             // Usage Stats
                             HStack(spacing: 20) {
                                 // Total Uses
@@ -177,7 +193,49 @@ struct BathroomDetailView: View {
                     .shadow(radius: 2)
                     .padding(.horizontal)
                 }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(15)
+                .shadow(radius: 2)
+                
+                // Cleanliness Input Section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Log Cleanliness Rating")
+                        .font(.headline)
 
+                    HStack(spacing: 8) {
+                        ForEach(1...5, id: \.self) { star in
+                            Image(systemName: star <= cleanlinessRating ? "star.fill" : "star")
+                                .foregroundColor(star <= cleanlinessRating ? .green : .gray)
+                                .font(.system(size: 24))
+                                .onTapGesture {
+                                    cleanlinessRating = star
+                                }
+                        }
+                    }
+
+                    Button("Submit Cleanliness Rating") {
+                        Task {
+                            await logCleanliness()
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(15)
+                .shadow(radius: 2)
+
+                // Reviews Section
+                if !reviews.isEmpty {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Reviews")
+                            .font(.headline)
+                            .padding(.horizontal)
                 // Reviews List
                 LazyVStack(alignment: .leading, spacing: 16) {
                     ForEach(reviews) { review in
@@ -228,6 +286,32 @@ struct BathroomDetailView: View {
             )
 
             await MainActor.run {
+
+                // Add the new review to the beginning of the array
+                reviews.insert(newReview, at: 0)
+
+                // Update bathroom stats immediately
+                if let currentBathroom = bathroom {
+                    let newTotalReviews = currentBathroom.totalReviews + 1
+                    let newAverageRating = ((currentBathroom.averageRating * Double(currentBathroom.totalReviews)) + Double(rating)) / Double(newTotalReviews)
+
+                    let updatedBathroom = FirestoreManager.Bathroom(
+                        id: currentBathroom.id,
+                        name: currentBathroom.name,
+                        buildingName: currentBathroom.buildingName,
+                        floor: currentBathroom.floor,
+                        location: currentBathroom.location,
+                        averageRating: newAverageRating,
+                        totalReviews: newTotalReviews,
+                        gender: currentBathroom.gender,
+                        createdAt: currentBathroom.createdAt,
+                        totalUses: currentBathroom.totalUses,
+                        cleanlinessRating: currentBathroom.cleanlinessRating, 
+                        totalCleanlinessLogs: currentBathroom.totalCleanlinessLogs 
+                    )
+                    bathroom = updatedBathroom
+                }
+
                 reviewText = ""
                 rating = nil
                 isLoading = false
@@ -245,7 +329,20 @@ struct BathroomDetailView: View {
             }
         }
     }
-
+    private func logCleanliness() async {
+        do {
+            try await FirestoreManager.shared.logCleanliness(
+                bathroomId: bathroomID,
+                userId: userEmail,
+                cleanlinessRating: Double(cleanlinessRating)
+            )
+            alertMessage = "Cleanliness rating submitted successfully!"
+            showAlert = true
+        } catch {
+            alertMessage = "Error logging cleanliness: \(error.localizedDescription)"
+            showAlert = true
+        }
+    }
     private func loadReviews() async {
         do {
             let fetchedReviews = try await FirestoreManager.shared.getReviews(forBathroomID: bathroomID)
@@ -270,6 +367,31 @@ struct BathroomDetailView: View {
     }
 
     private func logVisit() async {
+        do {
+            try await FirestoreManager.shared.incrementUsageCount(
+                bathroomId: bathroomID,
+                userId: userEmail
+            )
+
+            // Immediately update the UI
+            await MainActor.run {
+                usageCount += 1
+                if let currentBathroom = bathroom {
+                    let updatedBathroom = FirestoreManager.Bathroom(
+                        id: currentBathroom.id,
+                        name: currentBathroom.name,
+                        buildingName: currentBathroom.buildingName,
+                        floor: currentBathroom.floor,
+                        location: currentBathroom.location,
+                        averageRating: currentBathroom.averageRating,
+                        totalReviews: currentBathroom.totalReviews,
+                        gender: currentBathroom.gender,
+                        createdAt: currentBathroom.createdAt,
+                        totalUses: currentBathroom.totalUses + 1,
+                        cleanlinessRating: currentBathroom.cleanlinessRating, 
+                        totalCleanlinessLogs: currentBathroom.totalCleanlinessLogs 
+                        )
+                    bathroom = updatedBathroom
         Task {
             do {
                 try await FirestoreManager.shared.logBathroomVisit(bathroomId: bathroom?.id ?? "")

@@ -16,6 +16,7 @@ class BathroomMark: Identifiable {
     var latitude: Double
     var longitude: Double
     var bathrooms: Bathrooms?
+    // var averageRating: Double
     
     init(name: String, latitude: Double, longitude: Double) {
         self.name = name

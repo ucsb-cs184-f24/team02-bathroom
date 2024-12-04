@@ -7,6 +7,8 @@
 
 import FirebaseFirestore
 import FirebaseCore
+import FirebaseStorage
+import FirebaseAuth
 
 class FirestoreManager: ObservableObject {
     static let shared = FirestoreManager()
@@ -20,38 +22,40 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Models
-    struct Bathroom: Identifiable, Hashable {
+    struct Bathroom: Identifiable, Equatable {
         let id: String
         let name: String
         let buildingName: String
         let floor: Int
         let location: GeoPoint
-        var averageRating: Double
-        var totalReviews: Int
+        let averageRating: Double
+        let totalReviews: Int
         let gender: String
         let createdAt: Timestamp
         var totalUses: Int
-        var cleanlinessRating: Double  // New field for cleanliness rating
-        var totalCleanlinessLogs: Int  // New field for total cleanliness logs
+        var cleanlinessRating: Double  
+        var totalCleanlinessLogs: Int  
 
 
         // Add Hashable conformance
         func hash(into hasher: inout Hasher) {
             hasher.combine(id)
         }
-
+        let totalUses: Int
         static func == (lhs: Bathroom, rhs: Bathroom) -> Bool {
-            lhs.id == rhs.id
+            return lhs.id == rhs.id
         }
     }
 
     struct Review: Identifiable {
-        var id: String
+        let id: String
         let bathroomId: String
         let userId: String
+        let userEmail: String
         let rating: Double
         let comment: String
         let createdAt: Timestamp
+        let isAnonymous: Bool
     }
 
     struct User: Identifiable {
@@ -73,18 +77,21 @@ class FirestoreManager: ObservableObject {
 
     // MARK: - Bathroom Methods
     func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String) async throws {
+        // Create bathroom document
+        let bathroomRef = db.collection("bathrooms").document()
         let bathroomData: [String: Any] = [
             "name": name,
             "buildingName": buildingName,
             "floor": floor,
             "location": GeoPoint(latitude: latitude, longitude: longitude),
+            "gender": gender,
             "averageRating": 0.0,
             "totalReviews": 0,
-            "gender": gender,
-            "createdAt": Timestamp()
+            "createdAt": Timestamp(),
+            "totalUses": 0
         ]
 
-        try await db.collection("bathrooms").document().setData(bathroomData)
+        try await bathroomRef.setData(bathroomData)
     }
 
     func getAllBathrooms() async throws -> [Bathroom] {
@@ -109,45 +116,29 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Review Methods
-    func addReview(bathroomId: String, userId: String, rating: Double, comment: String) async throws {
-        print("Starting to add review to Firestore...")
+    func addReview(bathroomId: String, rating: Double, comment: String, isAnonymous: Bool = false) async throws {
+        guard let userId = Auth.auth().currentUser?.uid,
+              let userEmail = Auth.auth().currentUser?.email else {
+            throw NSError(domain: "ReviewError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
 
+
+        // Create review data
         let reviewData: [String: Any] = [
             "bathroomId": bathroomId,
             "userId": userId,
+            "userEmail": userEmail,
             "rating": rating,
             "comment": comment,
-            "createdAt": Timestamp()
+            "createdAt": Timestamp(),
+            "isAnonymous": isAnonymous
         ]
 
-        // Add review
-        let reviewRef = db.collection("reviews").document()
-        try await reviewRef.setData(reviewData)
-        print("Review added with ID: \(reviewRef.documentID)")
+        // Add review to Firestore
+        try await db.collection("reviews").document().setData(reviewData)
 
-        // Get all reviews and calculate new average
-        let reviewsSnapshot = try await db.collection("reviews")
-            .whereField("bathroomId", isEqualTo: bathroomId)
-            .getDocuments()
-
-        let reviews = reviewsSnapshot.documents.map { document -> Double in
-            let data = document.data()
-            return data["rating"] as? Double ?? 0.0
-        }
-
-        let totalReviews = reviews.count
-        let averageRating = reviews.isEmpty ? 0.0 : reviews.reduce(0.0, +) / Double(totalReviews)
-
-        print("Calculated new average: \(averageRating) from \(totalReviews) reviews")
-
-        // Update bathroom
-        let bathroomRef = db.collection("bathrooms").document(bathroomId)
-        try await bathroomRef.updateData([
-            "averageRating": averageRating,
-            "totalReviews": totalReviews
-        ])
-
-        print("Updated bathroom stats successfully")
+        // Update bathroom stats
+        try await updateBathroomStats(bathroomId: bathroomId, newRating: rating)
     }
 
     func getReviews(forBathroomID bathroomId: String) async throws -> [Review] {
@@ -166,9 +157,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -273,9 +266,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -325,9 +320,9 @@ class FirestoreManager: ObservableObject {
     }
 
     // Add this new method to get reviews by user ID
-    func getUserReviews(forUserID userID: String) async throws -> [Review] {
+    func getUserReviews(forUserID userId: String) async throws -> [Review] {
         let snapshot = try await db.collection("reviews")
-            .whereField("userId", isEqualTo: userID)
+            .whereField("userId", isEqualTo: userId)
             .order(by: "createdAt", descending: true)
             .getDocuments()
 
@@ -337,9 +332,11 @@ class FirestoreManager: ObservableObject {
                 id: document.documentID,
                 bathroomId: data["bathroomId"] as? String ?? "",
                 userId: data["userId"] as? String ?? "",
+                userEmail: data["userEmail"] as? String ?? "",
                 rating: data["rating"] as? Double ?? 0.0,
                 comment: data["comment"] as? String ?? "",
-                createdAt: data["createdAt"] as? Timestamp ?? Timestamp()
+                createdAt: data["createdAt"] as? Timestamp ?? Timestamp(),
+                isAnonymous: data["isAnonymous"] as? Bool ?? false
             )
         }
     }
@@ -403,5 +400,137 @@ class FirestoreManager: ObservableObject {
         return snapshot.documents.reduce(0) { sum, doc in
             sum + (doc.data()["count"] as? Int ?? 0)
         }
+    }
+
+    private func updateBathroomStats(bathroomId: String, newRating: Double) async throws {
+        // Get all reviews for this bathroom
+        let snapshot = try await db.collection("reviews")
+            .whereField("bathroomId", isEqualTo: bathroomId)
+            .getDocuments()
+
+        // Calculate new stats
+        let reviews = snapshot.documents
+        let totalReviews = reviews.count
+        let sumRatings = reviews.reduce(0.0) { sum, document in
+            sum + (document.data()["rating"] as? Double ?? 0.0)
+        }
+        let averageRating = sumRatings / Double(totalReviews)
+
+        // Update bathroom document
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+        try await bathroomRef.updateData([
+            "averageRating": averageRating,
+            "totalReviews": totalReviews
+        ])
+    }
+
+    func logBathroomVisit(bathroomId: String) async throws {
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+
+        try await db.runTransaction { transaction, errorPointer in
+            let bathroomDoc: DocumentSnapshot
+            do {
+                bathroomDoc = try transaction.getDocument(bathroomRef)
+            } catch let fetchError as NSError {
+                errorPointer?.pointee = fetchError
+                return nil
+            }
+
+            guard let currentTotalUses = bathroomDoc.data()?["totalUses"] as? Int else {
+                let error = NSError(
+                    domain: "FirestoreManager",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve total uses from snapshot \(bathroomDoc)"]
+                )
+                errorPointer?.pointee = error
+                return nil
+            }
+
+            transaction.updateData(["totalUses": currentTotalUses + 1], forDocument: bathroomRef)
+            return nil
+        }
+    }
+
+    func toggleFavorite(bathroomId: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FavoriteError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+
+        let favoriteRef = db.collection("favorites").document("\(userId)_\(bathroomId)")
+        let docSnapshot = try await favoriteRef.getDocument()
+
+        if docSnapshot.exists {
+            // Remove favorite
+            try await favoriteRef.delete()
+        } else {
+            // Add favorite
+            try await favoriteRef.setData([
+                "userId": userId,
+                "bathroomId": bathroomId,
+                "createdAt": Timestamp()
+            ])
+        }
+    }
+
+    func isBathroomFavorited(bathroomId: String) async throws -> Bool {
+        guard let userId = Auth.auth().currentUser?.uid else { return false }
+
+        let docSnapshot = try await db.collection("favorites")
+            .document("\(userId)_\(bathroomId)")
+            .getDocument()
+
+        return docSnapshot.exists
+    }
+
+    func getFavoriteBathrooms() async throws -> [Bathroom] {
+        guard let userId = Auth.auth().currentUser?.uid else { return [] }
+
+        let snapshot = try await db.collection("favorites")
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments()
+
+        let bathroomIds = snapshot.documents.map { $0.data()["bathroomId"] as? String ?? "" }
+
+        var favoriteBathrooms: [Bathroom] = []
+        for id in bathroomIds {
+            if let bathroom = try? await getBathroom(id: id) {
+                favoriteBathrooms.append(bathroom)
+            }
+        }
+
+        return favoriteBathrooms
+    }
+
+    func updateUserPrivacySettings(userId: String, isPrivate: Bool) async throws {
+        try await db.collection("users").document(userId).setData([
+            "isPrivateProfile": isPrivate
+        ], merge: true)
+    }
+
+    func getUserPrivacySettings(userId: String) async throws -> Bool {
+        let doc = try await db.collection("users").document(userId).getDocument()
+        return doc.data()?["isPrivateProfile"] as? Bool ?? false
+    }
+
+    func deleteReview(reviewId: String, bathroomId: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "ReviewError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+
+        // Get the review to verify ownership
+        let reviewDoc = try await db.collection("reviews").document(reviewId).getDocument()
+        guard let reviewData = reviewDoc.data(),
+              reviewData["userId"] as? String == userId else {
+            throw NSError(domain: "ReviewError", code: -1,
+                         userInfo: [NSLocalizedDescriptionKey: "Not authorized to delete this review"])
+        }
+
+        // Delete the review
+        try await db.collection("reviews").document(reviewId).delete()
+
+        // Update bathroom stats
+        try await updateBathroomStats(bathroomId: bathroomId, newRating: 0)
     }
 }

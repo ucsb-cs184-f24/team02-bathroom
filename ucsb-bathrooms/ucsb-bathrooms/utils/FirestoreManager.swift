@@ -376,30 +376,54 @@ class FirestoreManager: ObservableObject {
     }
 
     func logBathroomVisit(bathroomId: String) async throws {
-        let bathroomRef = db.collection("bathrooms").document(bathroomId)
-
-        try await db.runTransaction { transaction, errorPointer in
-            let bathroomDoc: DocumentSnapshot
-            do {
-                bathroomDoc = try transaction.getDocument(bathroomRef)
-            } catch let fetchError as NSError {
-                errorPointer?.pointee = fetchError
-                return nil
-            }
-
-            guard let currentTotalUses = bathroomDoc.data()?["totalUses"] as? Int else {
-                let error = NSError(
-                    domain: "FirestoreManager",
-                    code: -1,
-                    userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve total uses from snapshot \(bathroomDoc)"]
-                )
-                errorPointer?.pointee = error
-                return nil
-            }
-
-            transaction.updateData(["totalUses": currentTotalUses + 1], forDocument: bathroomRef)
-            return nil
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(
+                domain: "FirestoreManager",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "User not authenticated"]
+            )
         }
+
+        let bathroomRef = db.collection("bathrooms").document(bathroomId)
+        let usageRef = db.collection("usage").document("\(userId)_\(bathroomId)")
+
+        try await db.runTransaction({ (transaction, errorPointer) -> Any? in
+            // Get the bathroom document
+            let bathroomDoc = try? transaction.getDocument(bathroomRef)
+
+            // Get current total uses, defaulting to 0 if field doesn't exist
+            let currentTotalUses = bathroomDoc?.data()?["totalUses"] as? Int ?? 0
+
+            // Get the usage document
+            let usageDoc = try? transaction.getDocument(usageRef)
+            let currentCount = usageDoc?.data()?["count"] as? Int ?? 0
+
+            // Update the bathroom document
+            transaction.updateData([
+                "totalUses": currentTotalUses + 1
+            ], forDocument: bathroomRef)
+
+            // Update or create the usage document
+            transaction.setData([
+                "userId": userId,
+                "bathroomId": bathroomId,
+                "count": currentCount + 1,
+                "lastUsed": Timestamp()
+            ], forDocument: usageRef, merge: true)
+
+            return nil
+        })
+    }
+
+    // Add this method to get usage count for a specific bathroom
+    func getBathroomUsageCount(bathroomId: String) async throws -> Int {
+        guard let userId = Auth.auth().currentUser?.uid else { return 0 }
+
+        let usageDoc = try await db.collection("usage")
+            .document("\(userId)_\(bathroomId)")
+            .getDocument()
+
+        return usageDoc.data()?["count"] as? Int ?? 0
     }
 
     func toggleFavorite(bathroomId: String) async throws {

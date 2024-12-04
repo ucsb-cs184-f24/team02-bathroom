@@ -100,6 +100,39 @@ struct BathroomDetailView: View {
                                     }
                                 }
                             }
+
+                            HStack(spacing: 16) {
+                                // Visit Log Button
+                                Button(action: {
+                                    Task {
+                                        await logVisit()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "checkmark.circle.fill")
+                                        Text("Log Visit")
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(20)
+                                }
+
+                                // Favorite Button
+                                Button(action: toggleFavorite) {
+                                    HStack {
+                                        Image(systemName: isFavorite ? "heart.fill" : "heart")
+                                        Text(isFavorite ? "Favorited" : "Favorite")
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(isFavorite ? Color.red : Color.gray)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(20)
+                                }
+                            }
+                            .padding(.vertical, 8)
                         }
                     }
                     .padding()
@@ -212,6 +245,11 @@ struct BathroomDetailView: View {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
                                              to: nil, from: nil, for: nil)
             }
+        }
+        .alert("Visit Logged!", isPresented: $showingUsageAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your visit has been recorded. You've visited this bathroom \(usageCount) times.")
         }
     }
 

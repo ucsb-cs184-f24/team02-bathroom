@@ -144,71 +144,13 @@ struct BathroomDetailView: View {
 
                 // Review Form
                 if isAuthenticated {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Write a Review")
-                            .font(.headline)
-
-                        // Rating Stars
-                        HStack(spacing: 8) {
-                            ForEach(1...5, id: \.self) { star in
-                                Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
-                                    .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
-                                    .font(.system(size: 24))
-                                    .onTapGesture {
-                                        withAnimation {
-                                            rating = star
-                                        }
-                                    }
-                            }
+                    ReviewSection(
+                        rating: $rating,
+                        reviewText: $reviewText,
+                        onSubmit: {
+                            await submitReview()
                         }
-
-                        // Review Text
-                        ZStack(alignment: .topLeading) {
-                            if reviewText.isEmpty {
-                                Text("Write your review here...")
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                                    .padding(.leading, 4)
-                            }
-                            TextEditor(text: $reviewText)
-                                .frame(minHeight: 100)
-                                .focused($isTextEditorFocused)
-                        }
-                        .padding(8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-
-                        // Anonymous Toggle
-                        Toggle("Post Anonymously", isOn: $isAnonymous)
-
-                        // Submit Button
-                        Button {
-                            isTextEditorFocused = false
-                            Task {
-                                await submitReview()
-                            }
-                        } label: {
-                            HStack {
-                                if isLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle())
-                                } else {
-                                    Text("Submit Review")
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        }
-                        .disabled(isLoading || rating == nil || reviewText.isEmpty)
-                    }
-                    .padding()
-                    .background(Color(.systemBackground))
-                    .cornerRadius(12)
-                    .shadow(radius: 2)
-                    .padding(.horizontal)
+                    )
                 }
 
                 // Reviews List
@@ -468,5 +410,73 @@ struct ReviewCardView: View {
         } message: {
             Text("Are you sure you want to delete this review? This action cannot be undone.")
         }
+    }
+}
+
+struct ReviewSection: View {
+    @Binding var rating: Int?
+    @Binding var reviewText: String
+    @State private var isSubmitting = false
+    let onSubmit: () async -> Void
+
+    private var isValidReview: Bool {
+        (rating ?? 0) > 0 && !reviewText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Write a Review")
+                .font(.headline)
+
+            // Star Rating
+            HStack {
+                ForEach(1...5, id: \.self) { star in
+                    Image(systemName: star <= (rating ?? 0) ? "star.fill" : "star")
+                        .foregroundColor(star <= (rating ?? 0) ? .yellow : .gray)
+                        .onTapGesture {
+                            rating = star
+                        }
+                }
+            }
+
+            // Review Text
+            TextEditor(text: $reviewText)
+                .frame(height: 100)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.2))
+                )
+                .onAppear {
+                    UITextView.appearance().backgroundColor = .clear
+                }
+                .onDisappear {
+                    UITextView.appearance().backgroundColor = nil
+                }
+
+            // Submit Button
+            Button(action: {
+                isSubmitting = true
+                // Handle async submission
+                Task {
+                    await onSubmit()
+                    isSubmitting = false
+                }
+            }) {
+                if isSubmitting {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Text("Submit Review")
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(isValidReview ? Color.blue : Color.gray)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .disabled(!isValidReview || isSubmitting)
+        }
+        .padding()
     }
 }

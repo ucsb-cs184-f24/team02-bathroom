@@ -209,11 +209,21 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - User Review Methods
-    func getUserReviews(userEmail: String) async throws -> [Review] {
-        let snapshot = try await db.collection("reviews")
-            .whereField("userId", isEqualTo: userEmail)
-            .order(by: "createdAt", descending: true)
-            .getDocuments()
+    func getUserReviews(userEmail: String, isCurrentUser: Bool = false) async throws -> [Review] {
+        print("Debug - Getting reviews for email: \(userEmail), isCurrentUser: \(isCurrentUser)")
+
+
+        var query = db.collection("reviews")
+            .whereField("userEmail", isEqualTo: userEmail)
+
+        if !isCurrentUser {
+            // If not viewing own profile, only show non-anon reviewa
+            query = query.whereField("isAnonymous", isEqualTo: false)
+        }
+
+        // Add ordering after all filters
+        query = query.order(by: "createdAt", descending: true)
+
 
         return snapshot.documents.compactMap { document in
             let data = document.data()

@@ -9,6 +9,7 @@ import Firebase
 import FirebaseFirestore
 import CoreLocation
 
+
 class FirestoreManager: ObservableObject {
     static let shared = FirestoreManager()
 
@@ -21,30 +22,25 @@ class FirestoreManager: ObservableObject {
     }
 
     // MARK: - Models
-    struct Bathroom: Identifiable, Hashable {
+    struct Bathroom: Identifiable, Equatable {
         let id: String
         let name: String
         let buildingName: String
         let floor: Int
         let location: GeoPoint
-        var averageRating: Double
-        var totalReviews: Int
+        let averageRating: Double
+        let totalReviews: Int
         let gender: String
         let createdAt: Timestamp
-        var totalUses: Int
-
-        // Add Hashable conformance
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(id)
-        }
+        let totalUses: Int
 
         static func == (lhs: Bathroom, rhs: Bathroom) -> Bool {
-            lhs.id == rhs.id
+            return lhs.id == rhs.id
         }
     }
 
     struct Review: Identifiable {
-        var id: String
+        let id: String
         let bathroomId: String
         let userId: String
         let userEmail: String
@@ -97,18 +93,21 @@ class FirestoreManager: ObservableObject {
 
     // MARK: - Bathroom Methods
     func addBathroom(name: String, buildingName: String, floor: Int, latitude: Double, longitude: Double, gender: String) async throws {
+        // Create bathroom document
+        let bathroomRef = db.collection("bathrooms").document()
         let bathroomData: [String: Any] = [
             "name": name,
             "buildingName": buildingName,
             "floor": floor,
             "location": GeoPoint(latitude: latitude, longitude: longitude),
+            "gender": gender,
             "averageRating": 0.0,
             "totalReviews": 0,
-            "gender": gender,
-            "createdAt": Timestamp()
+            "createdAt": Timestamp(),
+            "totalUses": 0
         ]
 
-        try await db.collection("bathrooms").document().setData(bathroomData)
+        try await bathroomRef.setData(bathroomData)
     }
 
     func getAllBathrooms() async throws -> [Bathroom] {
@@ -134,6 +133,8 @@ class FirestoreManager: ObservableObject {
     func addReview(bathroomId: String, userId: String, userEmail: String, rating: Double, comment: String, isAnonymous: Bool) async throws {
         print("Starting to add review to Firestore...")
 
+
+        // Create review data
         let reviewData: [String: Any] = [
             "bathroomId": bathroomId,
             "userId": userId,
@@ -144,34 +145,11 @@ class FirestoreManager: ObservableObject {
             "isAnonymous": isAnonymous
         ]
 
-        // Add review
-        let reviewRef = db.collection("reviews").document()
-        try await reviewRef.setData(reviewData)
-        print("Review added with ID: \(reviewRef.documentID)")
+        // Add review to Firestore
+        try await db.collection("reviews").document().setData(reviewData)
 
-        // Get all reviews and calculate new average
-        let reviewsSnapshot = try await db.collection("reviews")
-            .whereField("bathroomId", isEqualTo: bathroomId)
-            .getDocuments()
-
-        let reviews = reviewsSnapshot.documents.map { document -> Double in
-            let data = document.data()
-            return data["rating"] as? Double ?? 0.0
-        }
-
-        let totalReviews = reviews.count
-        let averageRating = reviews.isEmpty ? 0.0 : reviews.reduce(0.0, +) / Double(totalReviews)
-
-        print("Calculated new average: \(averageRating) from \(totalReviews) reviews")
-
-        // Update bathroom
-        let bathroomRef = db.collection("bathrooms").document(bathroomId)
-        try await bathroomRef.updateData([
-            "averageRating": averageRating,
-            "totalReviews": totalReviews
-        ])
-
-        print("Updated bathroom stats successfully")
+        // Update bathroom stats
+        try await updateBathroomStats(bathroomId: bathroomId, newRating: rating)
     }
 
     func getReviews(forBathroomID bathroomId: String) async throws -> [Review] {
@@ -337,6 +315,7 @@ class FirestoreManager: ObservableObject {
                 errorPointer?.pointee = fetchError
                 return nil
             }
+
 
             let currentCount = (usageDoc.data()?["count"] as? Int) ?? 0
             var logs = (usageDoc.data()?["logs"] as? [[String: Any]]) ?? []
@@ -582,5 +561,6 @@ class FirestoreManager: ObservableObject {
             isProfilePrivate: data["isProfilePrivate"] as? Bool ?? false,
             displayName: data["displayName"] as? String ?? ""
         )
+
     }
 }

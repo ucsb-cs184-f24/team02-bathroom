@@ -19,5 +19,7 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>1004265046915-kucih8u660ja7k9bcc27a40c5qt2q2f5.apps.googleusercontent.com</string>
+	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+	<false/>
 </dict>
 </plist>

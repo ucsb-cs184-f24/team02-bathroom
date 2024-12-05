@@ -59,7 +59,12 @@ struct BathroomMapView: View {
                                     Spacer()
                                     NavigationLink(
                                         destination: AddBathroomView(
-                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center
+                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center,
+                                            onBathroomAdded: {
+                                                Task {
+                                                    await reloadBathrooms()
+                                                }
+                                            }
                                         ),
                                         isActive: $isNavigatingToAddBathroom
                                     ) {
@@ -189,6 +194,28 @@ struct BathroomMapView: View {
             }
         } catch {
             print("Error loading bathrooms: \(error)")
+        }
+    }
+
+    private func reloadBathrooms() async {
+        do {
+            bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+            if let minRating = bathrooms.map({ $0.averageRating }).min() {
+                worstBathroomIDs = Set(
+                    bathrooms
+                        .filter { $0.averageRating == minRating }
+                        .map { $0.id }
+                )
+            }
+            if let maxRating = bathrooms.map({ $0.averageRating }).max() {
+                bestBathroomIDs = Set(
+                    bathrooms
+                        .filter { $0.averageRating == maxRating }
+                        .map { $0.id }
+                )
+            }
+        } catch {
+            print("Error reloading bathrooms: \(error)")
         }
     }
 }

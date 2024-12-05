@@ -255,11 +255,12 @@ class FirestoreManager: ObservableObject {
     func getUserReviews(userEmail: String, isCurrentUser: Bool = false) async throws -> [Review] {
         print("Debug - Getting reviews for email: \(userEmail), isCurrentUser: \(isCurrentUser)")
 
+
         var query = db.collection("reviews")
             .whereField("userEmail", isEqualTo: userEmail)
 
         if !isCurrentUser {
-            // If not viewing own profile, only show non-anonymous reviews
+            // If not viewing own profile, only show non-anon reviewa
             query = query.whereField("isAnonymous", isEqualTo: false)
         }
 

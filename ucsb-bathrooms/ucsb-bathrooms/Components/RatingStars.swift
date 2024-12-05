@@ -33,7 +33,7 @@ struct RatingStars: View {
     }
 }
 
-private struct PartialStar: View{
+private struct PartialStar: View {
     let fillPercentage: Double // 0.0 to 1.0
 
     var body: some View {

@@ -106,8 +106,7 @@ struct BathroomMapView: View {
                 BathroomMarker(
                     isSelected: selectedBathroom?.id == bathroom.id,
                     isWorstBathroom: worstBathroomIDs.contains(bathroom.id),
-                    isBestBathroom: bestBathroomIDs.contains(bathroom.id),
-                    isFavorited: false
+                    isBestBathroom: bestBathroomIDs.contains(bathroom.id)
                 ) {
                     withAnimation {
                         selectedBathroom = bathroom
@@ -226,21 +225,13 @@ struct BathroomMarker: View {
     let isSelected: Bool
     let isWorstBathroom: Bool
     let isBestBathroom: Bool
-    let isFavorited: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: isFavorited ? "toilet.circle.fill" : "toilet.circle")
+            Image(systemName: isSelected ? "toilet.circle.fill" : "toilet.circle")
                 .font(.system(size: 28))
                 .foregroundColor(markerColor)
-                .overlay(
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.red)
-                        .opacity(isFavorited ? 1 : 0)
-                        .offset(x: 8, y: -8)
-                )
         }
         .buttonStyle(PlainButtonStyle())
     }

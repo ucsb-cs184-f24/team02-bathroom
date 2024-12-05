@@ -10,6 +10,7 @@ struct BathroomDetailView: View {
 
     @State private var reviewText: String = ""
     @State private var rating: Int = 0
+
     @State private var reviews: [FirestoreManager.Review] = []
     @State private var isLoading = false
     @State private var showAlert = false
@@ -194,11 +195,13 @@ struct BathroomDetailView: View {
                     await checkFavoriteStatus()
                     await loadPersonalVisits()
                 }
+
             }
         }
     }
 
-    private func handleSubmitReview() async {
+    private func submitReview() async {
+        guard !isLoading else { return }
         isLoading = true
 
         guard let currentUser = Auth.auth().currentUser else {
@@ -224,48 +227,24 @@ struct BathroomDetailView: View {
                 rating: Double(rating),
                 comment: reviewText,
                 createdAt: Timestamp(),
+
                 isAnonymous: isAnonymous
             )
 
             await MainActor.run {
-                // Add the new review to the beginning of the array
-                reviews.insert(newReview, at: 0)
-
-                // Update bathroom stats immediately
-                if let currentBathroom = bathroom {
-                    let newTotalReviews = currentBathroom.totalReviews + 1
-                    let newAverageRating = ((currentBathroom.averageRating * Double(currentBathroom.totalReviews)) + Double(rating)) / Double(newTotalReviews)
-
-                    let updatedBathroom = FirestoreManager.Bathroom(
-                        id: currentBathroom.id,
-                        name: currentBathroom.name,
-                        buildingName: currentBathroom.buildingName,
-                        floor: currentBathroom.floor,
-                        location: currentBathroom.location,
-                        averageRating: newAverageRating,
-                        totalReviews: newTotalReviews,
-                        gender: currentBathroom.gender,
-                        createdAt: currentBathroom.createdAt,
-                        totalUses: currentBathroom.totalUses
-                    )
-                    bathroom = updatedBathroom
-                }
-
                 reviewText = ""
-                rating = 3
+                rating = nil
                 isLoading = false
                 alertMessage = "Review submitted successfully!"
                 showAlert = true
             }
 
-            // Refresh the actual data from Firestore
             await loadBathroomData()
             await loadReviews()
-
         } catch {
             await MainActor.run {
                 isLoading = false
-                alertMessage = "Error submitting review: \(error.localizedDescription)"
+                alertMessage = error.localizedDescription
                 showAlert = true
             }
         }
@@ -305,8 +284,20 @@ struct BathroomDetailView: View {
                 personalVisits += 1  // Increment personal visits counter
                 showingUsageAlert = true
             }
+
         } catch {
-            print("Error logging visit: \(error)")
+            print("Error loading favorite status: \(error)")
+        }
+    }
+
+    private func toggleFavorite() {
+        Task {
+            do {
+                try await FirestoreManager.shared.toggleFavorite(bathroomId: bathroomID)
+                isFavorite.toggle()
+            } catch {
+                print("Error toggling favorite: \(error)")
+            }
         }
     }
 
@@ -500,6 +491,7 @@ struct ReviewCardView: View {
                 PublicProfileView(userId: review.userEmail)
             }
         }
+
     }
 }
 
@@ -565,6 +557,7 @@ struct FavoriteButton: View {
                     .background(Color(.systemBackground))
                     .clipShape(Circle())
                     .shadow(radius: 2)
+
             }
             .disabled(isCheckingFavorite)
         }
@@ -639,11 +632,30 @@ struct ReviewInputCard: View {
                 .cornerRadius(12)
             }
             .disabled(rating == 0 || reviewText.isEmpty || isLoading)
+
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(radius: 2)
+        .alert("Delete Review", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                Task {
+                    do {
+                        try await FirestoreManager.shared.deleteReview(
+                            reviewId: review.id,
+                            bathroomId: review.bathroomId
+                        )
+                        onDelete()
+                    } catch {
+                        print("Error deleting review: \(error)")
+                    }
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete this review? This action cannot be undone.")
+        }
     }
 }
 

@@ -7,12 +7,15 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ProfilePageView: View {
     @Binding var userFullName: String
     @Binding var userEmail: String
     @Binding var isAuthenticated: Bool
+    @State private var selectedTab: ProfileTab = .reviews
     @State private var userReviews: [FirestoreManager.Review] = []
+    @State private var favoriteBathrooms: [FirestoreManager.Bathroom] = []
     @State private var totalUses: Int = 0
     @State private var showSignOutAlert = false
     @State private var favoriteBathrooms: [FirestoreManager.Bathroom] = []
@@ -20,6 +23,7 @@ struct ProfilePageView: View {
     @State private var visitHistory: [FirestoreManager.Visit] = []
     @State private var isRefreshing = false
     @State private var bathroomNames: [String: String] = [:]
+
 
     var body: some View {
         NavigationView {
@@ -103,6 +107,7 @@ struct ProfilePageView: View {
                         ) {
                             withAnimation { selectedTab = 2 }
                         }
+
                     }
                     .padding(.horizontal)
                     .background(Color(.systemBackground))
@@ -124,6 +129,7 @@ struct ProfilePageView: View {
                                     }
                                 } catch {
                                     print("Error deleting review: \(error)")
+
                                 }
                             }
                         }
@@ -134,6 +140,8 @@ struct ProfilePageView: View {
                     default:
                         EmptyView()
                     }
+                    .padding(.horizontal)
+                    .animation(.easeInOut, value: selectedTab)
                 }
             }
             .refreshable {
@@ -142,10 +150,11 @@ struct ProfilePageView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Profile")
+
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        showSignOutAlert = true
+                        signOut()
                     } label: {
                         Text("Sign Out")
                             .foregroundColor(.red)
@@ -169,6 +178,7 @@ struct ProfilePageView: View {
                     await loadTotalUses()
                 }
             }
+
         }
     }
 
@@ -178,6 +188,7 @@ struct ProfilePageView: View {
                 userEmail: userEmail,
                 isCurrentUser: true
             )
+
         } catch {
             print("Error loading user reviews: \(error)")
         }
@@ -215,6 +226,7 @@ struct ProfilePageView: View {
     }
 
     func signOut() {
+
         userFullName = ""
         userEmail = ""
         isAuthenticated = false
@@ -247,6 +259,7 @@ struct ProfilePageView: View {
 }
 
 // Helper Components
+
 struct StatCard: View {
     let title: String
     let value: String
@@ -271,6 +284,7 @@ struct StatCard: View {
         .padding()
         .background(color.opacity(0.1))
         .cornerRadius(12)
+
     }
 }
 
@@ -518,6 +532,7 @@ struct VisitHistoryCard: View {
             }
 
             Spacer()
+
         }
         .padding()
         .background(Color(.systemBackground))
@@ -613,5 +628,5 @@ struct PrivacySettingsView: View {
 }
 
 #Preview {
-    ProfilePageView(userFullName: .constant("Test User"), userEmail: .constant("test@example.com"), isAuthenticated: .constant(true))
+    ProfilePageView(userFullName: .constant("User Name"), userEmail: .constant("user@example.com"), isAuthenticated: .constant(true))
 }

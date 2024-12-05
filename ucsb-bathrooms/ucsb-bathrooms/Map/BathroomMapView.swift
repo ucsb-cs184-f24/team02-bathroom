@@ -59,7 +59,12 @@ struct BathroomMapView: View {
                                     Spacer()
                                     NavigationLink(
                                         destination: AddBathroomView(
-                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center
+                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center,
+                                            onBathroomAdded: {
+                                                Task {
+                                                    await reloadBathrooms()
+                                                }
+                                            }
                                         ),
                                         isActive: $isNavigatingToAddBathroom
                                     ) {
@@ -101,8 +106,7 @@ struct BathroomMapView: View {
                 BathroomMarker(
                     isSelected: selectedBathroom?.id == bathroom.id,
                     isWorstBathroom: worstBathroomIDs.contains(bathroom.id),
-                    isBestBathroom: bestBathroomIDs.contains(bathroom.id),
-                    isFavorited: false
+                    isBestBathroom: bestBathroomIDs.contains(bathroom.id)
                 ) {
                     withAnimation {
                         selectedBathroom = bathroom
@@ -191,6 +195,28 @@ struct BathroomMapView: View {
             print("Error loading bathrooms: \(error)")
         }
     }
+
+    private func reloadBathrooms() async {
+        do {
+            bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+            if let minRating = bathrooms.map({ $0.averageRating }).min() {
+                worstBathroomIDs = Set(
+                    bathrooms
+                        .filter { $0.averageRating == minRating }
+                        .map { $0.id }
+                )
+            }
+            if let maxRating = bathrooms.map({ $0.averageRating }).max() {
+                bestBathroomIDs = Set(
+                    bathrooms
+                        .filter { $0.averageRating == maxRating }
+                        .map { $0.id }
+                )
+            }
+        } catch {
+            print("Error reloading bathrooms: \(error)")
+        }
+    }
 }
 
 // MARK: - Supporting Views
@@ -199,21 +225,13 @@ struct BathroomMarker: View {
     let isSelected: Bool
     let isWorstBathroom: Bool
     let isBestBathroom: Bool
-    let isFavorited: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: isFavorited ? "toilet.circle.fill" : "toilet.circle")
+            Image(systemName: isSelected ? "toilet.circle.fill" : "toilet.circle")
                 .font(.system(size: 28))
                 .foregroundColor(markerColor)
-                .overlay(
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.red)
-                        .opacity(isFavorited ? 1 : 0)
-                        .offset(x: 8, y: -8)
-                )
         }
         .buttonStyle(PlainButtonStyle())
     }

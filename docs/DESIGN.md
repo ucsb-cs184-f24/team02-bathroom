@@ -45,6 +45,27 @@ Meeting (Week 5):
 - make backend to store information
 - Voted on adding features upload functionality (currently in progress).
 
+Meeting (Week 6):
+- updated map markers
+- save data to firestore
+- MVP video
+- new features to the app (favorite, log visit, etc)
+
+Meeting (Week 7):
+- HW 4: new implementations, new tests, new documents are added to the project
+
+Meeting (Week 8):
+- added buttons to allow users to add bathrooms on their own
+
+Meeting (Week 9):
+- Thanksgiving Break
+- updated 
+
+Meeting (Week 10):
+- added delete features and more user-friendly features 
+- wrap up and complete the final code
+
+
 
 ### User Experience (UX) Considerations
 Task/User Flow
@@ -54,12 +75,14 @@ User Flow for Finding a Bathroom:
 - Search: Navigate to the search page to find bathrooms by name, location, or rating.
 - Details: Tap on a bathroom marker or search result to view details (ratings, reviews, photos).
 - Post Review: Users can leave reviews or rate their experience.
+- Add Bathrooms: Users can add a new bathroom on the map with its details.
+- View other users: Users can view other users' accounts
 
 UX Design Goals
 - Simplicity: Minimalist interface with clear navigation for both users and admins.
 - Responsiveness: Optimize layouts for different screen sizes
 - Intuitiveness: Provide clear feedback for user actions
 
-Future Enhancements
-- Add photo upload capability for bathrooms and reviews.
+Future Possible Enhancements
 - Integrate filters for search results (e.g., cleanliness, accessibility).
+- report feature to report non-existing bathrooms

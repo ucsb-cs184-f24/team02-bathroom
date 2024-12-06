@@ -31,40 +31,59 @@ class AuthManager: ObservableObject {
                 return
             }
 
-            guard let signInResult = signInResult else {
-                print("No sign-in result")
+            guard let signInResult = signInResult,
+                  let idToken = signInResult.user.idToken?.tokenString else {
+                print("No sign-in result or missing ID token")
                 completion("No Name", "No Email", false)
                 return
             }
 
-            let userFullName = signInResult.user.profile?.name ?? "No Name"
-            let userEmail = signInResult.user.profile?.email ?? "No Email"
-            let userID = signInResult.user.userID ?? UUID().uuidString
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken,
+                                                           accessToken: signInResult.user.accessToken.tokenString)
+            
+            // Authenticate with Firebase
+            Auth.auth().signIn(with: credential) { authResult, error in
+                if let error = error {
+                    print("Firebase authentication error: \(error.localizedDescription)")
+                    completion("No Name", "No Email", false)
+                    return
+                }
+                
+                guard let user = authResult?.user else {
+                    print("No Firebase user")
+                    completion("No Name", "No Email", false)
+                    return
+                }
 
-            // Create user data for Firestore
-            let userData = FirestoreManager.User(
-                id: userID,
-                authProvider: "google",
-                email: userEmail,
-                fullName: userFullName,
-                createdAt: Timestamp(),
-                lastLoginAt: Timestamp()
-            )
+                let userFullName = signInResult.user.profile?.name ?? "No Name"
+                let userEmail = signInResult.user.profile?.email ?? "No Email"
+                let userID = user.uid
 
-            // Save to Firestore
-            Task {
-                do {
-                    if let _ = try await FirestoreManager.shared.getUser(withID: userID) {
-                        // Update last login
-                        try await FirestoreManager.shared.updateUserLastLogin(userID: userID)
-                    } else {
-                        // Create new user
-                        try await FirestoreManager.shared.addUser(userData)
+                // Create user data for Firestore
+                let userData = FirestoreManager.User(
+                    id: userID,
+                    authProvider: "google",
+                    email: userEmail,
+                    fullName: userFullName,
+                    createdAt: Timestamp(),
+                    lastLoginAt: Timestamp()
+                )
+
+                // Save to Firestore
+                Task {
+                    do {
+                        if let _ = try await FirestoreManager.shared.getUser(withID: userID) {
+                            // Update last login
+                            try await FirestoreManager.shared.updateUserLastLogin(userID: userID)
+                        } else {
+                            // Create new user
+                            try await FirestoreManager.shared.addUser(userData)
+                        }
+                        completion(userFullName, userEmail, true)
+                    } catch {
+                        print("Error saving user data: \(error.localizedDescription)")
+                        completion(userFullName, userEmail, true)
                     }
-                    completion(userFullName, userEmail, true)
-                } catch {
-                    print("Error saving user data: \(error.localizedDescription)")
-                    completion(userFullName, userEmail, true)
                 }
             }
         }

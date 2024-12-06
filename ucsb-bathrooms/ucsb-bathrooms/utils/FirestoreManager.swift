@@ -224,7 +224,8 @@ class FirestoreManager: ObservableObject {
         // Add ordering after all filters
         query = query.order(by: "createdAt", descending: true)
 
-
+        let snapshot = try await query.getDocuments()
+        
         return snapshot.documents.compactMap { document in
             let data = document.data()
             return Review(

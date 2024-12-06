@@ -1,28 +1,12 @@
 # Bathroom Finder User Manual
 
 ### Product Purpose
-Bathroom Finder is a mobile application designed to help users locate the best bathrooms on the UCSB campus. The app offers reviews, ratings, and location-based navigation to ensure users have a comfortable and efficient restroom experience. This iOS application is tailored for students, faculty, staff, and campus visitors who value convenience and hygiene.
+Bathroom Finder is an intuitive mobile application designed to simplify the search for clean, accessible restrooms on the UCSB campus. With user-generated reviews, detailed ratings, and real-time location-based navigation, the app ensures that students, faculty, staff, and visitors can easily find nearby bathrooms that meet their needs. Whether you’re rushing between classes or attending a campus event, Bathroom Finder makes it easier to navigate UCSB with comfort and convenience.
 
 ### Intended User Audience
 Students: Quickly find and rate campus restrooms between classes.\
 Faculty and Staff: Navigate to well-rated facilities near offices or lecture halls.\
 Campus Visitors: Easily locate restrooms during events or tours.
-
-### Table of Contents
-Introduction\
-Installation Guide
-
-User Features
-- Finding Bathrooms
-- Posting Reviews
-- Rating Bathrooms
-- Managing Posts and Reviews
-
-Admin Features
-- User Management
-Known Issues
-FAQ
-Contact and Support
 
 
 ### Installation Guide
@@ -41,45 +25,55 @@ Prerequisites
 - Select your target device (physical or simulator).
 - Build and run the application.
 
-### User Features
-Finding Bathrooms
-- Locate bathrooms by browsing the campus map integrated with Google Maps.
-- <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/c01206d0-35d4-4425-b9c3-06db5652daf1">
-- Some bathrooms are grouped together if they are in the same location. 
-![IMG_7544](https://github.com/user-attachments/assets/eed82ec2-8480-4dc5-836a-faa04554300d)
+## User Features
+#### Log in
+- Users will need to log in with a Google Account to begin using the app
+  - <img width="297" alt="Screenshot 2024-12-06 at 11 56 45 AM" src="https://github.com/user-attachments/assets/8cd40e4b-2d19-4ceb-a401-a583d3f86305">
 
 
-- Or locate the bathroom by finding the Nearest, Top Rated, and Most Used
-- <img width="285" alt="Screenshot 2024-11-15 at 10 28 00 AM" src="https://github.com/user-attachments/assets/67d5563d-ce96-42a0-b3c3-2c3a35394c0f">
+#### Finding Bathrooms
+- Browse the Campus Map: Locate bathrooms by browsing the campus map integrated with Google Maps.
+   - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/9d7f3689-7543-4996-bce8-84fdf2dbcdfe">
+- Grouped Locations: Some bathrooms are clustered together if they are within the same building or area. Easily identify these locations on the map.
+   - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/eed82ec2-8480-4dc5-836a-faa04554300d">
+- Leaderboard Page: View the "Nearest," "Top Rated," and "Most Used" bathrooms, helping you find the best options in real time.
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/823bb451-3b1c-458b-9dce-9e2ecfa3a464"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/d9041efe-c200-4714-a538-4d08b2eacf43"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/27de1f91-6b74-4092-9999-118c4fe0786e">
 
 
-Posting Reviews
-- Tap the "Add Review" button on any bathroom's detail page to post your feedback.
-- <img width="282" alt="Screenshot 2024-11-15 at 10 28 53 AM" src="https://github.com/user-attachments/assets/923e339b-f0e7-44b3-a71b-c8e5c0200dc7">
+#### Rate Bathrooms & Post Reviews
+- After visiting a bathroom, select the facility on the map to view its details. Tap "View Details" to write a review.
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/95a56afe-d1d1-44a6-ba97-5bd1312ab2a6">
+- Tap the "View Details" to navigate to the bathroom's detail page to post your feedback.
+  - Logging Visits & Directions: Log your visit by clicking "Log Visit," and easily navigate to the bathroom using the "Directions" button, which opens Apple Maps.
+    - <img width="261" alt="Screenshot 2024-12-06 at 11 43 46 AM" src="https://github.com/user-attachments/assets/bf38d70c-8daf-448c-aa5c-d6954fb4c0a3">
+  - Favorite Bathrooms: Mark your favorite bathrooms by clicking the heart icon, making them easy to find later.
+    - <img width="50" alt="Screenshot 2024-12-06 at 11 44 44 AM" src="https://github.com/user-attachments/assets/8fc3ba2f-21d3-41e6-802b-7ca795fd01c3">
 
-Rating Bathrooms
-- Select a star rating (1–5) to score cleanliness, accessibility, and overall experience.
-Check your Posts and Reviews
-- See you own posts and reviews from the "My account" section.
-- <img width="283" alt="Screenshot 2024-11-15 at 10 29 46 AM" src="https://github.com/user-attachments/assets/8b743081-e392-4797-9e8e-e5360b495008">
+- Rate the Bathroom: Give a star rating (1–5) for cleanliness, accessibility, and overall experience. Add any additional comments and click "Post Review" to share your feedback.
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/bb515d0d-496c-4b49-b281-9049ab7552c0"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/ce7f0f48-becd-4e0c-9206-56dc013f8133">
+- User can choose to post anonymously or non-anonymously by turning on or off the "Post Anonymously" button
+  - <img width="256" alt="Screenshot 2024-12-06 at 11 54 06 AM" src="https://github.com/user-attachments/assets/877e2235-4724-4cba-b486-066829284edd">
+- Delete a Review: If needed, users can delete their reviews by tapping the trash can icon next to their reviews.
+  - <img width="100" alt="Screenshot 2024-12-06 at 11 40 22 AM" src="https://github.com/user-attachments/assets/0258c774-c52b-43e6-8a5c-cf048db94992">
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/5f63331c-9b05-4d81-bfd2-6a69fe5c0f4a">
+  
+
+#### Add New Bathrooms
+- Add a New Bathroom: To contribute to the campus map, simply click the "Add" button on the map interface.
+  - <img width="84" alt="Screenshot 2024-12-06 at 11 25 28 AM" src="https://github.com/user-attachments/assets/4bcf3fbe-0d53-4f9d-9c87-1c2f716154b1">
+- Fill in the Details: Provide essential information for the new restroom, such as its name, location, floor number, and gender. Once added, the bathroom will appear on the campus map
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/f1417221-77e2-4f65-aaa8-2ea796e3bfee"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/b2082168-c497-4896-aa15-27a2526afc67">
 
 
+#### User Account Page
+- Past Visits: Review all of your past bathroom visits in one place. Access a list of all the facilities you’ve rated and reviewed.
+- Favorite Bathrooms: Quickly access the bathrooms you’ve marked as favorites for easy reference.
+- Review History: See all reviews you've posted, and revisit any past comments you've made on specific bathrooms.
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/62831051-8328-47f1-898e-3b9669a29ee3"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/b4ff7535-2382-408f-b41a-ab9d99e84da1"><img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/b4f113ea-c6ab-4a5b-bdcd-ec746ca43ebc">
+- Users can view other user's account page by clicking on their name and it will show their recent comments and total visits
+  - <img width="200" alt="Screenshot 2024-12-06 at 11 51 17 AM" src="https://github.com/user-attachments/assets/560b0a82-0fba-4f5a-8d93-2f6b57394119">
+  - <img width="286" alt="Screenshot 2024-11-15 at 10 26 59 AM" src="https://github.com/user-attachments/assets/faec3fcb-26ba-4c35-a324-3b554c8c3e28">
 
-![IMG_7557](https://github.com/user-attachments/assets/62831051-8328-47f1-898e-3b9669a29ee3)
-![IMG_7556](https://github.com/user-attachments/assets/b4ff7535-2382-408f-b41a-ab9d99e84da1)
-![IMG_7555](https://github.com/user-attachments/assets/b4f113ea-c6ab-4a5b-bdcd-ec746ca43ebc)
-![IMG_7554](https://github.com/user-attachments/assets/faec3fcb-26ba-4c35-a324-3b554c8c3e28)
-![IMG_7553](https://github.com/user-attachments/assets/823bb451-3b1c-458b-9dce-9e2ecfa3a464)
-![IMG_7552](https://github.com/user-attachments/assets/d9041efe-c200-4714-a538-4d08b2eacf43)
-![IMG_7551](https://github.com/user-attachments/assets/27de1f91-6b74-4092-9999-118c4fe0786e)
-![IMG_7550](https://github.com/user-attachments/assets/b2082168-c497-4896-aa15-27a2526afc67)
-![IMG_7549 2](https://github.com/user-attachments/assets/f1417221-77e2-4f65-aaa8-2ea796e3bfee)
-![IMG_7548](https://github.com/user-attachments/assets/5f63331c-9b05-4d81-bfd2-6a69fe5c0f4a)
-![IMG_7547](https://github.com/user-attachments/assets/ce7f0f48-becd-4e0c-9206-56dc013f8133)
-![IMG_7546](https://github.com/user-attachments/assets/bb515d0d-496c-4b49-b281-9049ab7552c0)
-![IMG_7545](https://github.com/user-attachments/assets/95a56afe-d1d1-44a6-ba97-5bd1312ab2a6)
-![IMG_7544 2](https://github.com/user-attachments/assets/8024a9b1-5a78-4518-bd4c-a7909463ae0f)
-![IMG_7543](https://github.com/user-attachments/assets/9d7f3689-7543-4996-bce8-84fdf2dbcdfe)
 
 
 

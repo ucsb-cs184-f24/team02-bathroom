@@ -55,29 +55,29 @@ struct BathroomMapView: View {
             }
 
             VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    NavigationLink(
-                                        destination: AddBathroomView(
-                                            initialLocation: locationManager.userLocation?.coordinate ?? region.center
-                                        ),
-                                        isActive: $isNavigatingToAddBathroom
-                                    ) {
-                                        Button {
-                                            isNavigatingToAddBathroom = true
-                                        } label: {
-                                            Image(systemName: "plus")
-                                                .font(.title2)
-                                                .padding()
-                                                .background(Color("bg1"))
-                                                .clipShape(Circle())
-                                                .shadow(radius: 1.5)
-                                        }
-                                    }
-                                    .padding()
-                                }
-                            }
+                Spacer()
+                HStack {
+                    Spacer()
+                    NavigationLink(
+                        destination: AddBathroomView(
+                            initialLocation: locationManager.userLocation?.coordinate ?? region.center
+                        ),
+                        isActive: $isNavigatingToAddBathroom
+                    ) {
+                        Button {
+                            isNavigatingToAddBathroom = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .clipShape(Circle())
+                                .shadow(radius: 1.5)
+                        }
+                    }
+                    .padding()
+                }
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: selectedBathroom)
         .sheet(item: $selectedBathroomGroup) { group in
@@ -139,9 +139,9 @@ struct BathroomMapView: View {
             Button(action: centerOnUser) {
                 Image(systemName: "location.fill")
                     .font(.title2)
-                    .foregroundColor(locationManager.authorizationStatus == .authorizedWhenInUse ? Color("accent") : .gray)
+                    .foregroundColor(locationManager.authorizationStatus == .authorizedWhenInUse ? .blue : .gray)
                     .padding(10)
-                    .background(Color("bg1"))
+                    .background(Color(.systemBackground))
                     .clipShape(Circle())
                     .shadow(radius: 2)
             }
@@ -273,33 +273,29 @@ struct BathroomListSheet: View {
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: isFavorited ? "toilet.circle.fill" : "toilet.circle")
-                .font(.system(size: 28))
-                .foregroundColor(markerColor)
-                .overlay(
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.red)
-                        .opacity(isFavorited ? 1 : 0)
-                        .offset(x: 8, y: -8)
-                )
+        NavigationView {
+            List(bathrooms) { bathroom in
+                Button(action: {
+                    onSelect(bathroom)
+                    presentationMode.wrappedValue.dismiss()
+                }) {
+                    HStack {
+                        Text(bathroom.name)
+                            .font(.headline)
+                        Spacer()
+                        Text(String(format: "%.1f ★", bathroom.averageRating))
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .navigationTitle("Select a Bathroom")
+            .navigationBarItems(trailing: Button("Close") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    private var markerColor: Color {
-        if isBestBathroom {
-            return Color.green
-                .adjustBrightness(-0.2)
-                .adjustSaturation(-0.33)
-        } else if isWorstBathroom {
-            return Color.red
-                        .adjustBrightness(-0.2)
-                        .adjustSaturation(-0.2)
-        } else {
-            return Color("accent").adjustBrightness(+0.65).adjustBrightness(+1)
-        }
+        .foregroundColor(Color("accent"))
+        .background(Color("bg"))
     }
 }
 
@@ -327,7 +323,6 @@ struct BathroomPreviewCard: View {
                     HStack {
                         Text(bathroom.name)
                             .font(.headline)
-                            .foregroundColor(Color("accent"))
 
                         Spacer()
 
@@ -348,12 +343,9 @@ struct BathroomPreviewCard: View {
 
                         HStack(spacing: 4) {
                             Image(systemName: "person.3.fill")
-                            
                             Text("\(bathroom.totalUses) visits")
                                 .font(.subheadline)
-                        }
-                        .foregroundColor(Color("accent"))
-                        .fixedSize(horizontal: true, vertical: false)
+                        }.foregroundColor(Color("accent"))
 
                         Spacer()
 
@@ -362,9 +354,8 @@ struct BathroomPreviewCard: View {
                             .foregroundColor(Color("accent"))
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundColor(
-                                Color("accent")
-                            )
+                            .foregroundColor(Color("accent"))
+                      
                     }
                 }
             }

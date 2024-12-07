@@ -281,8 +281,9 @@ struct BathroomPreviewCard: View {
                             
                             Text("\(bathroom.totalUses) visits")
                                 .font(.subheadline)
-                            
-                        }.foregroundColor(Color("accent"))
+                        }
+                        .foregroundColor(Color("accent"))
+                        .fixedSize(horizontal: true, vertical: false)
 
                         Spacer()
 

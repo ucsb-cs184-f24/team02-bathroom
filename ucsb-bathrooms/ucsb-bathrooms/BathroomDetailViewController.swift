@@ -131,7 +131,7 @@ struct BathroomDetailView: View {
                         }
                     }
                     .padding()
-                    .background(Color(.systemBackground))
+                    .background(Color("bg1"))
                     .cornerRadius(15)
                     .shadow(radius: 2)
 
@@ -171,7 +171,8 @@ struct BathroomDetailView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .accentColor(Color("accent"))
+            .background(Color("bg"))
             .navigationBarItems(trailing: FavoriteButton(
                 isFavorited: $isFavorited,
                 isCheckingFavorite: $isCheckingFavorite,
@@ -447,7 +448,7 @@ struct ReviewCardView: View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(Color(.systemGray6))
+                                .background(Color("bg1"))
                                 .cornerRadius(12)
                             }
 
@@ -491,7 +492,7 @@ struct ReviewCardView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(Color("bg1"))
                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         )
         .padding(.horizontal, 4)
@@ -562,7 +563,7 @@ struct FavoriteButton: View {
                     .foregroundColor(isFavorited ? .red : .gray)
                     .font(.title2)
                     .padding(8)
-                    .background(Color(.systemBackground))
+                    .background(Color("bg1"))
                     .clipShape(Circle())
                     .shadow(radius: 2)
             }
@@ -609,13 +610,13 @@ struct ReviewInputCard: View {
                 }
             }
             .tint(.blue)
-
-            // Review Text Input
+            
             TextEditor(text: $reviewText)
+                .scrollContentBackground(.hidden) // Makes the background transparent
                 .frame(minHeight: 100)
                 .padding(8)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .background(Color("bg")) // Custom background
+                .cornerRadius(12) // Rounded corners
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(Color(.systemGray4), lineWidth: 1)
@@ -641,7 +642,7 @@ struct ReviewInputCard: View {
             .disabled(rating == 0 || reviewText.isEmpty || isLoading)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(15)
         .shadow(radius: 2)
     }

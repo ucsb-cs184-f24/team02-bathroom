@@ -69,7 +69,7 @@ struct BathroomMapView: View {
                                             Image(systemName: "plus")
                                                 .font(.title2)
                                                 .padding()
-                                                .background(Color(.systemBackground))
+                                                .background(Color("bg1"))
                                                 .clipShape(Circle())
                                                 .shadow(radius: 1.5)
                                         }
@@ -129,9 +129,9 @@ struct BathroomMapView: View {
             Button(action: centerOnUser) {
                 Image(systemName: "location.fill")
                     .font(.title2)
-                    .foregroundColor(locationManager.authorizationStatus == .authorizedWhenInUse ? .blue : .gray)
+                    .foregroundColor(locationManager.authorizationStatus == .authorizedWhenInUse ? Color("accent") : .gray)
                     .padding(10)
-                    .background(Color(.systemBackground))
+                    .background(Color("bg1"))
                     .clipShape(Circle())
                     .shadow(radius: 2)
             }
@@ -228,7 +228,7 @@ struct BathroomMarker: View {
                         .adjustBrightness(-0.2)
                         .adjustSaturation(-0.2)
         } else {
-            return Color.blue.adjustBrightness(+0.65).adjustBrightness(+1)
+            return Color("accent").adjustBrightness(+0.65).adjustBrightness(+1)
         }
     }
 }
@@ -257,12 +257,13 @@ struct BathroomPreviewCard: View {
                     HStack {
                         Text(bathroom.name)
                             .font(.headline)
+                            .foregroundColor(Color("accent"))
 
                         Spacer()
 
                         Label(bathroom.gender, systemImage: "person.fill")
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                     }
 
                     HStack(spacing: 16) {
@@ -277,24 +278,27 @@ struct BathroomPreviewCard: View {
 
                         HStack(spacing: 4) {
                             Image(systemName: "person.3.fill")
-                                .foregroundColor(.blue)
+                            
                             Text("\(bathroom.totalUses) visits")
                                 .font(.subheadline)
-                        }
+                            
+                        }.foregroundColor(Color("accent"))
 
                         Spacer()
 
                         Text("View Details")
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(
+                                Color("accent")
+                            )
                     }
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color("bg1"))
             .cornerRadius(15)
             .shadow(radius: 3)
         }

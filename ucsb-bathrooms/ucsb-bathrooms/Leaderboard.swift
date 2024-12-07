@@ -76,6 +76,7 @@ struct Leaderboard: View {
 
                 bathroomList
             }
+            .background(Color("bg"))
             .navigationTitle("Leaderboard")
             .task {
                 await loadBathrooms()
@@ -229,11 +230,11 @@ struct TabButton: View {
                     Text(title)
                         .font(.subheadline.bold())
                 }
-                .foregroundColor(isSelected ? .blue : .gray)
+                .foregroundColor(isSelected ? Color("accent") : .gray)
 
                 // Indicator line
                 Rectangle()
-                    .fill(isSelected ? Color.blue : Color.clear)
+                    .fill(isSelected ? Color("accent") : Color.clear)
                     .frame(height: 2)
                     .cornerRadius(1)
             }
@@ -262,10 +263,14 @@ struct BathroomCard: View {
                 Circle()
                     .fill(getRankColor(rank: rank))
                     .frame(width: 36, height: 36)
+                    .stroke(color: .black, width: 0.5)
 
                 Text("\(rank)")
-                    .font(.callout.bold())
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
+                    .stroke(color: .black, width: 0.7)
+              
+       
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -273,13 +278,15 @@ struct BathroomCard: View {
                 HStack(alignment: .center) {
                     Text(bathroom.name)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(Color("fg1"))
 
                     Spacer()
 
                     Label(bathroom.gender, systemImage: "person.fill")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                        .bold()
+                        .foregroundColor(Color("accent"))
+    
+  
                 }
 
                 // Stats row
@@ -287,6 +294,7 @@ struct BathroomCard: View {
                     // Rating
                     HStack(spacing: 4) {
                         RatingStars(rating: bathroom.averageRating, starSize: 12)
+   
                         Text(String(format: "%.1f", bathroom.averageRating))
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -300,15 +308,17 @@ struct BathroomCard: View {
                     // Usage count
                     HStack(spacing: 4) {
                         Image(systemName: "person.3.fill")
-                            .foregroundColor(.blue)
+                            
                         Text("\(bathroom.totalUses)")
                             .font(.subheadline)
+                            
                     }
+                    .foregroundColor(Color("accent"))
                 }
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(15)
         .shadow(radius: 2)
     }
@@ -339,12 +349,6 @@ struct NearestBathroomCard: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Bathroom icon
-            Image(systemName: "toilet.fill")
-                .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 36, height: 36)
-
             VStack(alignment: .leading, spacing: 8) {
                 // Title row
                 HStack(alignment: .center) {
@@ -357,16 +361,16 @@ struct NearestBathroomCard: View {
                     if let distance = distance {
                         Text(formatDistance(meters: distance))
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Color("accent").opacity(0.1))
                             .cornerRadius(8)
                     }
 
                     Label(bathroom.gender, systemImage: "person.fill")
                         .font(.subheadline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color("accent"))
                 }
 
                 // Stats row
@@ -387,15 +391,16 @@ struct NearestBathroomCard: View {
                     // Usage count
                     HStack(spacing: 4) {
                         Image(systemName: "person.3.fill")
-                            .foregroundColor(.blue)
+    
                         Text("\(bathroom.totalUses)")
                             .font(.subheadline)
                     }
+                    .foregroundColor(Color("accent"))
                 }
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(15)
         .shadow(radius: 2)
     }

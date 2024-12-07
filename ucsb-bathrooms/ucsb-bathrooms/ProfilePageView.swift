@@ -76,7 +76,7 @@ struct ProfilePageView: View {
                         .padding(.vertical)
                     }
                     .padding()
-                    .background(Color(.systemBackground))
+  
 
                     // Updated Tab Buttons
                     HStack(spacing: 0) {
@@ -105,7 +105,7 @@ struct ProfilePageView: View {
                         }
                     }
                     .padding(.horizontal)
-                    .background(Color(.systemBackground))
+
 
                     Divider()
 
@@ -140,7 +140,7 @@ struct ProfilePageView: View {
                 // Reload all data
                 await refreshData()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color("bg"))
             .navigationTitle("Profile")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -328,7 +328,7 @@ struct FavoriteBathroomCard: View {
                             .foregroundColor(.gray)
 
                         Text(bathroom.gender)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                     }
                     .font(.subheadline)
                 }
@@ -339,7 +339,7 @@ struct FavoriteBathroomCard: View {
                     .foregroundColor(.gray)
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color("bg1"))
             .cornerRadius(12)
             .shadow(radius: 2)
         }
@@ -362,8 +362,8 @@ struct ProfileTabButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
-            .foregroundColor(isSelected ? .blue : .gray)
+            .background(isSelected ? Color("accent").opacity(0.1) : Color.clear)
+            .foregroundColor(isSelected ? Color("accent") : .gray)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -452,7 +452,7 @@ struct ProfileReviewCard: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
+                    .fill(Color("bg1"))
                     .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
             )
         }
@@ -520,7 +520,7 @@ struct VisitHistoryCard: View {
             Spacer()
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(12)
         .shadow(radius: 2)
         .task {

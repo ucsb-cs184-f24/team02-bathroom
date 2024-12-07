@@ -48,8 +48,6 @@ struct PublicProfileView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGray6)
-                .edgesIgnoringSafeArea(.all)
 
             if isLoading {
                 ProgressView("Loading profile...")
@@ -136,6 +134,7 @@ struct PublicProfileView: View {
                 }
             }
         }
+        .background(Color("bg"))
         .navigationTitle("Profile")
         .navigationBarItems(leading: Button(action: {
             presentationMode.wrappedValue.dismiss()
@@ -182,7 +181,7 @@ struct PublicProfileReviewCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(10)
         .shadow(radius: 1)
     }
@@ -217,7 +216,7 @@ struct PublicProfileStatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color("bg1"))
         .cornerRadius(10)
         .shadow(radius: 1)
     }

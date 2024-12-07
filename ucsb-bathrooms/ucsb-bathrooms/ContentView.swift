@@ -19,6 +19,8 @@ struct ContentView: View {
             if isAuthenticated {
                 TabView(selection: $selectedTab) {
                     BathroomMapView()
+                        .accentColor(Color("accent"))
+                        .background(Color("bg"))
                         .modelContainer(Bathrooms.preview)
                         .tabItem {
                             if self.selectedTab == 0 {
@@ -31,24 +33,40 @@ struct ContentView: View {
                         .tag(0)
 
                     Leaderboard()
+                        .accentColor(Color("accent"))
+                        .background(Color("bg"))
                         .tabItem {
-                            Image(systemName: selectedTab == 1 ? "star.fill" : "star")
+                            if self.selectedTab == 1 {
+                                Image(systemName: "star")
+                            } else {
+                                Image(systemName: "star.fill")
+                                
+                            }
                             Text("Leaderboard")
+                            
                         }
                         .tag(1)
 
                     // My Account Tab - ProfilePage with Sign Out button
                     ProfilePageView(userFullName: $userFullName, userEmail: $userEmail, isAuthenticated: $isAuthenticated)
+                        .accentColor(Color("accent"))
+                        .background(Color("bg"))
                         .tabItem {
                             if self.selectedTab == 2 {
                                 Image(systemName: "person")
+                                 
+                                   
+                                
+                              
                             } else {
                                 Image(systemName: "person.fill")
+                   
                             }
                             Text("My Account")
                         }
                         .tag(2)
                 }
+                .accentColor(Color("accent"))
             } else {
                 // If not authenticated, LandingPage
                 LandingPageView(isAuthenticated: $isAuthenticated, userFullName: $userFullName, userEmail: $userEmail)

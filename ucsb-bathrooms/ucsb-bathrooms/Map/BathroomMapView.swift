@@ -294,6 +294,8 @@ struct BathroomListSheet: View {
                 presentationMode.wrappedValue.dismiss()
             })
         }
+        .foregroundColor(Color("accent"))
+        .background(Color("bg"))
     }
 }
 
@@ -326,7 +328,7 @@ struct BathroomPreviewCard: View {
 
                         Label(bathroom.gender, systemImage: "person.fill")
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                     }
 
                     HStack(spacing: 16) {
@@ -341,24 +343,24 @@ struct BathroomPreviewCard: View {
 
                         HStack(spacing: 4) {
                             Image(systemName: "person.3.fill")
-                                .foregroundColor(.blue)
                             Text("\(bathroom.totalUses) visits")
                                 .font(.subheadline)
-                        }
+                        }.foregroundColor(Color("accent"))
 
                         Spacer()
 
                         Text("View Details")
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
                         Image(systemName: "chevron.right")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color("accent"))
+                      
                     }
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color("bg1"))
             .cornerRadius(15)
             .shadow(radius: 3)
         }

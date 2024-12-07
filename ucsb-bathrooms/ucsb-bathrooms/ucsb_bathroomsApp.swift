@@ -30,6 +30,7 @@ struct ucsb_bathroomsApp: App {
       NavigationView {
         ContentView()
       }
+      .accentColor(Color("accent"))
     }
   }
 }

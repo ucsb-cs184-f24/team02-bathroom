@@ -64,6 +64,7 @@ struct AddBathroomView: View {
                         Text("Male").tag("Male")
                         Text("Female").tag("Female")
                     }
+                    
                 }
 
                 Section {
@@ -79,6 +80,9 @@ struct AddBathroomView: View {
                     .disabled(!isFormValid || isLoading)
                 }
             }
+            
+            .scrollContentBackground(.hidden)
+            
             .navigationBarTitle("Add A Bathroom", displayMode: .inline)
             .navigationBarItems(trailing: Button("Cancel") {
                 presentationMode.wrappedValue.dismiss()
@@ -90,8 +94,9 @@ struct AddBathroomView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
-        }
+        }.background(Color("bg"))
     }
+    
 
     private var isFormValid: Bool {
         !bathroomName.isEmpty &&

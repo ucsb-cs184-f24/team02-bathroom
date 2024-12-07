@@ -14,12 +14,14 @@ struct BathroomMapView: View {
     @State private var worstBathroomIDs: Set<String> = []
     @State private var bestBathroomIDs: Set<String> = []
     @StateObject private var locationManager = LocationManager()
+
     @State private var bathrooms: [FirestoreManager.Bathroom] = []
+    @State private var bathroomGroups: [BathroomGroup] = []
     @State private var selectedBathroom: FirestoreManager.Bathroom?
+    @State private var selectedBathroomGroup: BathroomGroup?
     @State private var isNavigatingToDetail = false
     @State private var isNavigatingToAddBathroom = false
-    @State private var showingLocationErrorAlert = false
-    @State private var initialLocation: CLLocationCoordinate2D?
+
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 34.4140,
@@ -39,20 +41,19 @@ struct BathroomMapView: View {
             locationButton
                 .zIndex(1)
 
+            // Selected Bathroom Preview
             if let bathroom = selectedBathroom {
                 BathroomPreviewCard(
                     bathroom: bathroom,
                     isNavigatingToDetail: $isNavigatingToDetail
                 )
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: .bottom),
-                        removal: .move(edge: .bottom)
-                    )
-                )
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom),
+                    removal: .move(edge: .bottom)
+                ))
                 .zIndex(2)
             }
-            //.bottomTrailing
+
             VStack {
                                 Spacer()
                                 HStack {
@@ -79,34 +80,41 @@ struct BathroomMapView: View {
                             }
         }
         .animation(.easeInOut(duration: 0.3), value: selectedBathroom)
+        .sheet(item: $selectedBathroomGroup) { group in
+            BathroomListSheet(bathrooms: group.bathrooms) { bathroom in
+                selectedBathroom = bathroom
+                selectedBathroomGroup = nil
+            }
+        }
         .task {
             await loadBathrooms()
+            bathroomGroups = groupBathrooms(bathrooms)
         }
     }
 
-    // MARK: - View Components
+    // MARK: - Map Layer
 
     private var mapLayer: some View {
         Map(
             coordinateRegion: $region,
             showsUserLocation: true,
-            annotationItems: bathrooms
-        ) { bathroom in
-            MapAnnotation(
-                coordinate: CLLocationCoordinate2D(
-                    latitude: bathroom.location.latitude,
-                    longitude: bathroom.location.longitude
-                )
-            ) {
-                BathroomMarker(
-                    isSelected: selectedBathroom?.id == bathroom.id,
-                    isWorstBathroom: worstBathroomIDs.contains(bathroom.id),
-                    isBestBathroom: bestBathroomIDs.contains(bathroom.id),
-                    isFavorited: false
-                ) {
-                    withAnimation {
-                        selectedBathroom = bathroom
+            annotationItems: bathroomGroups
+        ) { group in
+            MapAnnotation(coordinate: group.coordinate) {
+                Button(action: {
+                    if group.bathrooms.count == 1 {
+                        // Single bathroom
+                        withAnimation {
+                            selectedBathroom = group.bathrooms.first
+                        }
+                    } else {
+                        // Multiple bathrooms in cluster
+                        selectedBathroomGroup = group
                     }
+                }) {
+                    Image(systemName: group.bathrooms.count == 1 ? "toilet.circle" : "toilet.circle.fill")
+                        .font(.system(size: 27))
+                        .foregroundColor(markerColor(for: group))
                 }
             }
         }
@@ -114,7 +122,7 @@ struct BathroomMapView: View {
         .simultaneousGesture(
             TapGesture()
                 .onEnded { _ in
-                    // Only dismiss if tapping the map, not a marker
+                    // Dismiss preview if tapping outside a marker
                     if selectedBathroom != nil {
                         withAnimation {
                             selectedBathroom = nil
@@ -123,6 +131,8 @@ struct BathroomMapView: View {
                 }
         )
     }
+
+    // MARK: - Location Button
 
     private var locationButton: some View {
         VStack {
@@ -139,17 +149,6 @@ struct BathroomMapView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
-    }
-
-    @ViewBuilder
-    private var selectedBathroomPreview: some View {
-        if let bathroom = selectedBathroom {
-            BathroomPreviewCard(
-                bathroom: bathroom,
-                isNavigatingToDetail: $isNavigatingToDetail
-            )
-            .transition(.move(edge: .bottom))
-        }
     }
 
     // MARK: - Helper Functions
@@ -172,35 +171,106 @@ struct BathroomMapView: View {
     private func loadBathrooms() async {
         do {
             bathrooms = try await FirestoreManager.shared.getAllBathrooms()
-            if let minRating = bathrooms.map({ $0.averageRating }).min() {
-                        worstBathroomIDs = Set(
-                            bathrooms
-                                .filter { $0.averageRating == minRating }
-                                .map { $0.id }
-                        )
-            }
-            if let maxRating = bathrooms.map({ $0.averageRating }).max() {
-                        bestBathroomIDs = Set(
-                            bathrooms
-                                .filter { $0.averageRating == maxRating }
-                                .map { $0.id }
-                        )
-                //print("Best Bathroom IDs: \(bestBathroomIDs)")
-            }
+            updateBestAndWorstSets()
+            bathroomGroups = groupBathrooms(bathrooms)
         } catch {
             print("Error loading bathrooms: \(error)")
         }
+    }
+
+    // If you have a reloadBathrooms function, include it as well:
+    // private func reloadBathrooms() async {
+    //     do {
+    //         bathrooms = try await FirestoreManager.shared.getAllBathrooms()
+    //         updateBestAndWorstSets()
+    //         bathroomGroups = groupBathrooms(bathrooms)
+    //     } catch {
+    //         print("Error reloading bathrooms: \(error)")
+    //     }
+    // }
+
+    private func updateBestAndWorstSets() {
+        if let minRating = bathrooms.map({ $0.averageRating }).min() {
+            worstBathroomIDs = Set(
+                bathrooms.filter { $0.averageRating == minRating }.map { $0.id }
+            )
+        }
+        if let maxRating = bathrooms.map({ $0.averageRating }).max() {
+            bestBathroomIDs = Set(
+                bathrooms.filter { $0.averageRating == maxRating }.map { $0.id }
+            )
+        }
+    }
+
+    private func groupBathrooms(_ bathrooms: [FirestoreManager.Bathroom]) -> [BathroomGroup] {
+        var groups: [BathroomGroup] = []
+        let threshold: CLLocationDistance = 25 // Adjust as needed
+
+        for bathroom in bathrooms {
+            if let index = groups.firstIndex(where: { $0.isClose(to: bathroom, threshold: threshold) }) {
+                groups[index].bathrooms.append(bathroom)
+            } else {
+                let group = BathroomGroup(
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: bathroom.location.latitude,
+                        longitude: bathroom.location.longitude
+                    ),
+                    bathrooms: [bathroom]
+                )
+                groups.append(group)
+            }
+        }
+        return groups
+    }
+
+    private func markerColor(for group: BathroomGroup) -> Color {
+        let hasBestBathroom = group.bathrooms.contains { bestBathroomIDs.contains($0.id) }
+        let hasWorstBathroom = group.bathrooms.contains { worstBathroomIDs.contains($0.id) }
+
+        if group.bathrooms.count == 1 {
+            let bathroom = group.bathrooms.first!
+            if bestBathroomIDs.contains(bathroom.id) {
+                return .green.adjustBrightness(-0.06).adjustSaturation(0.1)
+            } else if worstBathroomIDs.contains(bathroom.id) {
+                return .red.adjustBrightness(-0.07).adjustSaturation(-0.1)
+            } else {
+                return .blue.adjustBrightness(-0.06).adjustSaturation(-0.1)
+            }
+        } else {
+            // For clusters with multiple bathrooms
+            if hasBestBathroom {
+                return .green.adjustBrightness(-0.06).adjustSaturation(0.1)
+            } else if hasWorstBathroom {
+                return .red.adjustBrightness(-0.07).adjustSaturation(-0.1)
+            } else {
+                return .purple.adjustBrightness(-0.05).adjustSaturation(-0.1)
+            }
+        }
+    }
+}
+
+// MARK: - BathroomGroup Model
+
+struct BathroomGroup: Identifiable {
+    let id = UUID()
+    let coordinate: CLLocationCoordinate2D
+    var bathrooms: [FirestoreManager.Bathroom]
+
+    func isClose(to bathroom: FirestoreManager.Bathroom, threshold: CLLocationDistance) -> Bool {
+        let groupLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        let bathroomLocation = CLLocation(latitude: bathroom.location.latitude, longitude: bathroom.location.longitude)
+        let distance = groupLocation.distance(from: bathroomLocation)
+        return distance < threshold
     }
 }
 
 // MARK: - Supporting Views
 
-struct BathroomMarker: View {
-    let isSelected: Bool
-    let isWorstBathroom: Bool
-    let isBestBathroom: Bool
-    let isFavorited: Bool
-    let action: () -> Void
+struct BathroomListSheet: View {
+    let bathrooms: [FirestoreManager.Bathroom]
+    let onSelect: (FirestoreManager.Bathroom) -> Void
+
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         Button(action: action) {
@@ -305,9 +375,7 @@ struct BathroomPreviewCard: View {
         }
         .padding(.horizontal)
         .padding(.bottom, 49)
-        .background(
-            Color.clear
-        )
+        .background(Color.clear)
     }
 }
 
